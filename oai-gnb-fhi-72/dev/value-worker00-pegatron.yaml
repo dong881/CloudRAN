@@ -25,7 +25,7 @@ serviceAccount:
   annotations: {}
   # The name of the service account to use.
   # If not set and create is true, a name is generated using the fullname template
-  name: "oai-gnb-sa-metanoia-jura"
+  name: "oai-gnb-sa"
 
 #service type is fixed to clusterIP, it is only support for non multus interface (eth0)
 
@@ -66,18 +66,18 @@ multus:
   ruInterface:            #Only needed if using a ethernet based RU/USRP
     create: true
     mtu: 9600
-    vlan: 3 #Metanoia Jura 3, LiteON New 4, Pegatron 103
+    vlan: 103 #LiteON New 6 LiteON Old, 4
     cPlaneMacAdd: 00:11:22:33:44:66  #vvdn 76:76:64:6e:00:01 #benetel 00:11:22:33:44:67
     uPlaneMacAdd: 00:11:22:33:44:66 #vvdn 76:76:64:6e:00:02 #benetel 00:11:22:33:44:66
     sriovNetworkNamespace: sriov-network-operator
-    sriovResourceNameCplane: fh_sriov_cp_lao
-    sriovResourceNameUplane: fh_sriov_up_lao
+    sriovResourceNameCplane: fh_sriov_cp
+    sriovResourceNameUplane: fh_sriov_up
 
 ## If you want to change more configuration parameters then you should mount the config file
 # in templates/configmap.yaml
 # Example config files --> https://gitlab.eurecom.fr/oai/openairinterface5g/-/tree/develop/targets/PROJECTS/GENERIC-NR-5GC/CONF
 config:
-  # frequency configuration
+  # Pegatron frequency configuration
   absoluteFrequencySSB: 649920  # 3748.8 MHz
   dl_absoluteFrequencyPointA: 646724  # 3700.86 MHz
   # OAI
@@ -95,8 +95,8 @@ config:
   tac: "1"     # check the information with AMF
   sst: "1"  #currently only 4 standard values are allowed 1,2,3,4
   #LiteON
-  ruCPlaneMacAdd: 00:e0:0c:00:ae:06  # Jura RU MAC address
-  ruUPlaneMacAdd: 00:e0:0c:00:ae:06  # Jura RU MAC address
+  ruCPlaneMacAdd: 48:21:0b:4b:93:8e  # Pegatron RU MAC address
+  ruUPlaneMacAdd: 48:21:0b:4b:93:8e  # Pegatron RU MAC address
   #amfhost: "oai-amf.oai-cn"  # amf ip-address or service-name oai-amf-svc or 172.21.6.94
   #amfhost: "10.0.6.246"  # Open5GS Kubernetes
   #amfhost: "open5gs-amf-ngap.5gs-cn"
@@ -146,10 +146,10 @@ resources:
       hugepages: 10Gi
         #hugepages: 10Gi
       sriovCplaneClaim:
-        name: openshift.io/fh_sriov_cp_lao
+        name: openshift.io/fh_sriov_cp
         quantity: 1
       sriovUplaneClaim:
-        name: openshift.io/fh_sriov_up_lao
+        name: openshift.io/fh_sriov_up
         quantity: 1
     #If tcpdump container is disabled this value will not be used
     tcpdump:
@@ -162,10 +162,10 @@ resources:
       # size of the hugepages is 1 Gi
       hugepages: 10Gi
       sriovCplaneClaim:
-        name: openshift.io/fh_sriov_cp_lao
+        name: openshift.io/fh_sriov_cp
         quantity: 1
       sriovUplaneClaim:
-        name: openshift.io/fh_sriov_up_lao
+        name: openshift.io/fh_sriov_up
         quantity: 1
     #If tcpdump container is disabled this value will not be used
     tcpdump:
@@ -179,6 +179,6 @@ affinity: {}
 terminationGracePeriodSeconds: 5
 
 nodeSelector:
-  kubernetes.io/hostname: "lavoisier"
+  kubernetes.io/hostname: "worker-rt-00"
 
 nodeName:
