@@ -27,7 +27,7 @@ data:
         pdsch_AntennaPorts_N1 = 2;
         pdsch_AntennaPorts_N2 = 1;
         pusch_AntennaPorts    = 4;
-        maxMIMO_layers        = 4;
+        maxMIMO_layers        = 2;
         do_CSIRS              = 1;
         do_SRS                = 0;
         force_UL256qam_off    = 1;
@@ -258,7 +258,7 @@ data:
       fh_config = ({
         T1a_cp_dl = (285, 470);
         T1a_cp_ul = (285, 429);
-        T1a_up = (100, 300);
+        T1a_up = (100, 250);
         Ta4 = (110, 180);
         ru_config = {
           iq_width = 9;
