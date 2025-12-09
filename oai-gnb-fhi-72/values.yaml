@@ -15,7 +15,7 @@ nfimage:   # image name either locally present or in a public/private repository
 
   # Develop Branch
   repository: oaisoftwarealliance/oai-gnb-fhi72
-  version: 2025.w40
+  version: 2025.w30
 
 
   pullPolicy: IfNotPresent
@@ -71,7 +71,7 @@ multus:
     hostInterface: "bond0"      # Interface of the host machine on which this pod will be scheduled
   ruInterface:            #Only needed if using a ethernet based RU/USRP
     create: true
-    mtu: 9000
+    mtu: 9600
     vlan: 6 #LiteON New 6 LiteON Old, 4
     cPlaneMacAdd: 00:11:22:33:44:66  #vvdn 76:76:64:6e:00:01 #benetel 00:11:22:33:44:67
     uPlaneMacAdd: 00:11:22:33:44:66 #vvdn 76:76:64:6e:00:02 #benetel 00:11:22:33:44:66
@@ -83,15 +83,6 @@ multus:
 # in templates/configmap.yaml
 # Example config files --> https://gitlab.eurecom.fr/oai/openairinterface5g/-/tree/develop/targets/PROJECTS/GENERIC-NR-5GC/CONF
 config:
-  # Pegatron frequency configuration
-  absoluteFrequencySSB: 649920  # 3748.8 MHz
-  dl_absoluteFrequencyPointA: 646724  # 3700.86 MHz
-  # OAI
-  #absoluteFrequencySSB: 623328
-  #dl_absoluteFrequencyPointA: 620052
-  # Claude
-  #absoluteFrequencySSB: 641280
-  #dl_absoluteFrequencyPointA: 638004
   timeZone: "Europe/Paris"
   #useAdditionalOptions: "--sa --log_config.global_log_options level,nocolor,time"
   useAdditionalOptions: " --log_config.global_log_options level,nocolor,time" # Develop Branch

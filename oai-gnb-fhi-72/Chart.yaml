@@ -20,7 +20,7 @@
 ################################################################################
 
 apiVersion: v2
-name: oai-gnb-metaonia-jura
+name: oai-gnb-liteon
 description: A Helm chart for gnb network function
 
 # A chart can be either an 'application' or a 'library' chart.

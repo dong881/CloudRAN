@@ -26,7 +26,7 @@ data:
 
         pdsch_AntennaPorts_XP = 2;
         pdsch_AntennaPorts_N1 = 2;
-        maxMIMO_layers        = 4;
+        maxMIMO_layers        = 2;
         pusch_AntennaPorts    = 4;
         do_CSIRS              = 1;
         do_SRS                = 0 ;
@@ -208,7 +208,7 @@ data:
       tx_amp_backoff_dB = 20; # needs to match O-RU configuration
       L1_rx_thread_core = @L1_RX_CORE@;
       L1_tx_thread_core = @L1_TX_CORE@; # relevant after merge of l1_tx_thread
-      phase_compensation = 1; # needs to match O-RU configuration
+      phase_compensation = 0; # needs to match O-RU configuration
     }
     );
 
@@ -267,7 +267,7 @@ data:
       dpdk_devices = ("@C_PLANE_PCI_ADD@", "@U_PLANE_PCI_ADD@");
       system_core = @SYSTEM_CORE@;
       io_core = @IO_CORE@;
-      worker_cores = (@WORKER_CORE_LIST@);
+      worker_cores = (15,17);
       du_addr = ("{{ .Values.multus.ruInterface.cPlaneMacAdd }}", "{{ .Values.multus.ruInterface.uPlaneMacAdd }}");
       ru_addr = ("{{ .Values.config.ruCPlaneMacAdd }}", "{{ .Values.config.ruUPlaneMacAdd }}");
       mtu = {{ .Values.multus.ruInterface.mtu }};
@@ -275,7 +275,7 @@ data:
       fh_config = ({
         T1a_cp_dl = (285, 429);
         T1a_cp_ul = (285, 429);
-        T1a_up = (96, 196);
+        T1a_up = (96, 200);
         Ta4 = (110, 180);
         ru_config = {
           iq_width = 9;
