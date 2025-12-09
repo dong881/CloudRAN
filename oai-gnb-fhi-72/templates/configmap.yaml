@@ -31,29 +31,22 @@ data:
         do_CSIRS              = 1;
         do_SRS                = 0 ;
         sib1_tda        = 15;
-        #force_UL256qam_off    = 1;
 
-        pdcch_ConfigSIB1 = (
-          {
-            controlResourceSetZero = 11;
-            searchSpaceZero = 0;
-          }
-        );
 
         servingCellConfigCommon = (
         {
           #spCellConfigCommon
 
                 physCellId                                                    = 0;
-               # n_TimingAdvanceOffset                                         = 0;
+               # n_TimingAdvnceOffset                                         = 0;
           #  downlinkConfigCommon
               #frequencyInfoDL
                 # center frequency = 3350.01 MHz
                 # selected SSB frequency = 3349.92 MHz
-                absoluteFrequencySSB                                          = {{ .Values.config.absoluteFrequencySSB }};
+                absoluteFrequencySSB                                          = 641280;
                 dl_frequencyBand                                              = 78;
                 # frequency point A = 3300.87 MHz
-                dl_absoluteFrequencyPointA                                    = {{ .Values.config.dl_absoluteFrequencyPointA }};
+                dl_absoluteFrequencyPointA                                    = 638004;
                 #scs-SpecificCarrierList
                   dl_offstToCarrier                                           = 0;
           # subcarrierSpacing
@@ -93,7 +86,7 @@ data:
           #prach_msg1_FDM
           #0 = one, 1=two, 2=four, 3=eight
                     prach_msg1_FDM                                            = 0;
-                    prach_msg1_FrequencyStart                                 = 22;
+                    prach_msg1_FrequencyStart                                 = 0;
                     zeroCorrelationZoneConfig                                 = 15;
                     preambleReceivedTargetPower                               = -104;
           #preamblTransMax (0...10) = (3,4,5,6,7,8,10,20,50,100,200)

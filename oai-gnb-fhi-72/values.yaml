@@ -10,12 +10,12 @@ nfapi:
 ## To know more about them follow this tutorial https://gitlab.eurecom.fr/oai/cn5g/oai-cn5g-fed/-/tree/master/openshift
 nfimage:   # image name either locally present or in a public/private repository
   # BMW Branch
-  repository: bmw.ece.ntust.edu.tw/infidel/oai-gnb-fhi72
-  version: rhel9
+  # repository: bmw.ece.ntust.edu.tw/infidel/oai-gnb-fhi72
+  # version: rhel9
 
   # Develop Branch
-  # repository: oaisoftwarealliance/oai-gnb-fhi72
-  # version: 2025.w30
+  repository: oaisoftwarealliance/oai-gnb-fhi72
+  version: 2025.w40
 
 
   pullPolicy: IfNotPresent
@@ -71,7 +71,7 @@ multus:
     hostInterface: "bond0"      # Interface of the host machine on which this pod will be scheduled
   ruInterface:            #Only needed if using a ethernet based RU/USRP
     create: true
-    mtu: 9216
+    mtu: 9000
     vlan: 6 #LiteON New 6 LiteON Old, 4
     cPlaneMacAdd: 00:11:22:33:44:66  #vvdn 76:76:64:6e:00:01 #benetel 00:11:22:33:44:67
     uPlaneMacAdd: 00:11:22:33:44:66 #vvdn 76:76:64:6e:00:02 #benetel 00:11:22:33:44:66
@@ -105,7 +105,7 @@ config:
   ruCPlaneMacAdd: 00:aa:ff:bb:ff:cc
   ruUPlaneMacAdd: 00:aa:ff:bb:ff:cc
   #amfhost: "open5gs-amf-ngap.5gs-cn"
-  amfhost: "192.168.8.108" # BMW Open5GS
+  amfhost: "192.168.8.82" # BMW Open5GS
   n2IfName: "eth0"    # if multus.n2Interface.create is true then use n2
   n3IfName: "eth0"   #if multus.n3Interface.create is true then use n3 or you can only use 1 interface n2 or eth0
 
