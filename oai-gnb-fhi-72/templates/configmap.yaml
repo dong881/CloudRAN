@@ -268,6 +268,7 @@ data:
 
     fhi_72 = {
       dpdk_devices = ("@C_PLANE_PCI_ADD@", "@U_PLANE_PCI_ADD@");
+      dpdk_iova_mode = "VA";
       system_core = @SYSTEM_CORE@;
       io_core = @IO_CORE@;
       worker_cores = (@WORKER_CORE_0@, @WORKER_CORE_1@);
@@ -278,7 +279,7 @@ data:
       fh_config = ({
         T1a_cp_dl = (285, 470);
         T1a_cp_ul = (285, 429);
-        T1a_up = (100, 250);
+        T1a_up = (125, 350);
         Ta4 = (110, 180);
         ru_config = {
           iq_width = 9;
