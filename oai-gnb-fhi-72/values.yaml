@@ -96,7 +96,7 @@ config:
   ruCPlaneMacAdd: 00:aa:ff:bb:ff:cc
   ruUPlaneMacAdd: 00:aa:ff:bb:ff:cc
   #amfhost: "open5gs-amf-ngap.5gs-cn"
-  amfhost: "192.168.8.82" # BMW Open5GS
+  amfhost: "192.168.8.108" # BMW Open5GS
   n2IfName: "eth0"    # if multus.n2Interface.create is true then use n2
   n3IfName: "eth0"   #if multus.n3Interface.create is true then use n3 or you can only use 1 interface n2 or eth0
 
