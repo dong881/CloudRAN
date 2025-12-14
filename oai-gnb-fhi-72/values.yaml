@@ -100,6 +100,27 @@ config:
   n2IfName: "eth0"    # if multus.n2Interface.create is true then use n2
   n3IfName: "eth0"   #if multus.n3Interface.create is true then use n3 or you can only use 1 interface n2 or eth0
 
+fhi72:
+  dpdk_iova_mode: "VA"
+  file_prefix: "fhi_72"
+  T1a_cp_dl:
+    min: 285
+    max: 429
+  T1a_cp_ul:
+    min: 285
+    max: 429
+  T1a_up:
+    min: 96
+    max: 196
+  Ta4:
+    min: 110
+    max: 180
+  ru_config:
+    iq_width: 9
+    iq_width_prach: 9
+  prach_config:
+    kbar: 0
+
 ## Debugging section
 start:
   gnb: true #If false the network function container will run in sleep mode for manually testing
