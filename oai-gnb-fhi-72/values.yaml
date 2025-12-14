@@ -157,7 +157,8 @@ resources:
   limits:
     nf:
       #cpu: 8
-      windriver.com/isolcpus: 8
+      #windriver.com/isolcpus: 8
+      wr_isolcpus: 8
       memory: 16Gi
       hugepages: 10Gi
       sriovCplaneClaim:
@@ -172,7 +173,8 @@ resources:
   requests:
     nf:
       #cpu: 8
-      windriver.com/isolcpus: 8
+      #windriver.com/isolcpus: 8
+      wr_isolcpus: 8
       memory: 16Gi
       hugepages: 10Gi
       sriovCplaneClaim:
