@@ -12,7 +12,7 @@ data:
     (
      {
         ////////// Identification parameters:
-        gNB_ID    =  0xe00;
+        gNB_ID    =  0xef0;
         gNB_name  =  "{{ .Values.config.gnbName }}";
         // Tracking area code, 0x0000 and 0xfffe are reserved values
         tracking_area_code  = {{ .Values.config.tac}} ;
@@ -166,8 +166,8 @@ data:
     MACRLCs = (
             {
             num_cc = 1;
-            remote_s_address = "@VNF_IP_ADDRESS@"; // vnf addr
-            local_s_address  = "@PNF_IP_ADDRESS@"; // pnf addr
+            remote_s_address = "@PNF_IP_ADDRESS@"; // vnf addr
+            local_s_address  = "@VNF_IP_ADDRESS@"; // pnf addr
             local_s_portc    = 50001; // vnf p5 port
             remote_s_portc   = 50000; // pnf p5 port [!]
             local_s_portd    = 50011; // vnf p7 port [  !]

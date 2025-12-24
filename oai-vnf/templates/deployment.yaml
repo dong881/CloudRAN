@@ -16,7 +16,6 @@ spec:
       labels:
         {{- include "oai-gnb.selectorLabels" . | nindent 8 }}
         app: oai-gnb
-    {{- if or .Values.multus.n2Interface.create .Values.multus.ruInterface.create }}
       annotations:
         cpu-quota.crio.io: "disable"
         k8s.v1.cni.cncf.io/networks: |
@@ -26,20 +25,24 @@ spec:
               "name": "{{ .Chart.Name }}-n2",
               "interface": "n2", 
               "default-route": ["{{ .Values.multus.defaultGateway }}"]
-            }{{ if .Values.multus.ruInterface.create }},{{ end }}
+            }
+            {{ if .Values.multus.n3Interface.create }},{{ end }}
           {{- end }}
-          {{- if .Values.multus.ruInterface.create }}
+          {{- if .Values.multus.n3Interface.create }}
             {
-              "name": "{{ .Chart.Name }}-ru-uplane",
-              "mac": "{{ .Values.multus.ruInterface.uPlaneMacAdd }}"
-            },
+              "name": "{{ .Chart.Name }}-n3",
+              "interface": "n3", 
+              "default-route": ["{{ .Values.multus.defaultGateway }}"]
+            }
+            {{ if .Values.multus.nfapiInterface.create }},{{ end }}
+          {{- end }}
+          {{- if .Values.multus.nfapiInterface.create }}
             {
-              "name": "{{ .Chart.Name }}-ru-cplane",
-              "mac": "{{ .Values.multus.ruInterface.cPlaneMacAdd }}"
+              "name": "{{ .Chart.Name }}-nfapi",
+              "interface": "nfapi"
             }
           {{- end }}
           ]
-    {{- end }}
     spec:
       securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
@@ -64,18 +67,12 @@ spec:
         {{- if .Values.resources.define}}
         resources:
           requests:
-            {{ .Values.resources.requests.nf.sriovCplaneClaim.name }}: {{ .Values.resources.requests.nf.sriovCplaneClaim.quantity | quote  }}
-            {{ .Values.resources.requests.nf.sriovUplaneClaim.name }}: {{ .Values.resources.requests.nf.sriovUplaneClaim.quantity | quote  }}
             memory: {{ .Values.resources.requests.nf.memory | quote }}
             cpu: {{ .Values.resources.requests.nf.cpu | quote }}
-            hugepages-1Gi: {{ .Values.resources.requests.nf.hugepages | quote }}
             windriver.com/isolcpus: {{ .Values.resources.requests.nf.wr_isolcpus | quote }}
           limits:
-            {{ .Values.resources.requests.nf.sriovCplaneClaim.name }}: {{ .Values.resources.requests.nf.sriovCplaneClaim.quantity | quote  }}
-            {{ .Values.resources.requests.nf.sriovUplaneClaim.name }}: {{ .Values.resources.requests.nf.sriovUplaneClaim.quantity | quote  }}
             memory: {{ .Values.resources.limits.nf.memory | quote }}
             cpu: {{ .Values.resources.limits.nf.cpu | quote }}
-            hugepages-1Gi: {{ .Values.resources.limits.nf.hugepages | quote }}
             windriver.com/isolcpus: {{ .Values.resources.limits.nf.wr_isolcpus | quote }}
         {{- end}}
         securityContext:
@@ -96,6 +93,7 @@ spec:
             AMF_IP_ADDRESS=$(if [[ $AMF_IP_ADDRESS ]]; then echo $AMF_IP_ADDRESS; else echo $AMF_HOST;fi);
             N2_IP_ADDRESS=$(ip -f inet addr show $N2_IF_NAME | grep -o "inet [0-9]*\.[0-9]*\.[0-9]*\.[0-9]*" | grep -o "[0-9]*\.[0-9]*\.[0-9]*\.[0-9]*");
             N3_IP_ADDRESS=$(ip -f inet addr show $N3_IF_NAME | grep -o "inet [0-9]*\.[0-9]*\.[0-9]*\.[0-9]*" | grep -o "[0-9]*\.[0-9]*\.[0-9]*\.[0-9]*");
+            NFAPI_IP_ADDRESS=$(ip -f inet addr show $NFAPI_IF_NAME | grep -o "inet [0-9]*\.[0-9]*\.[0-9]*\.[0-9]*" | grep -o "[0-9]*\.[0-9]*\.[0-9]*\.[0-9]*");
             PCI_ADD_U=PCIDEVICE_INTEL_COM_${SRIOV_RESOURCE_NAME_UPLANE^^};
             PCI_ADD_C=PCIDEVICE_INTEL_COM_${SRIOV_RESOURCE_NAME_CPLANE^^};
             U_PLANE_PCI_ADD=$(echo ${!PCI_ADD_U});
@@ -128,10 +126,10 @@ spec:
             value: {{ .Values.config.n2IfName }}
           - name: N3_IF_NAME
             value: {{ .Values.config.n3IfName }}
-          - name: SRIOV_RESOURCE_NAME_UPLANE
-            value: {{ .Values.multus.ruInterface.sriovResourceNameUplane }}
-          - name: SRIOV_RESOURCE_NAME_CPLANE
-            value: {{ .Values.multus.ruInterface.sriovResourceNameCplane }}
+          - name: VNF_IP_ADDRESS
+            value: {{ .Values.config.vnfHost }}
+          - name: PNF_IP_ADDRESS
+            value: {{ .Values.config.pnfHost }}
       {{- if .Values.includeTcpDumpContainer }}
       - name: tcpdump
         image: "{{ .Values.tcpdumpimage.repository }}:{{ .Values.tcpdumpimage.version }}"

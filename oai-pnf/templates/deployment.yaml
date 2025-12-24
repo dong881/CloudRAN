@@ -16,16 +16,15 @@ spec:
       labels:
         {{- include "oai-gnb.selectorLabels" . | nindent 8 }}
         app: oai-gnb
-    {{- if or .Values.multus.n2Interface.create .Values.multus.ruInterface.create }}
+    {{- if or .Values.multus.nfapiInterface.create .Values.multus.ruInterface.create }}
       annotations:
         cpu-quota.crio.io: "disable"
         k8s.v1.cni.cncf.io/networks: |
           [
-          {{- if .Values.multus.n2Interface.create }}
+          {{- if .Values.multus.nfapiInterface.create }}
             {
-              "name": "{{ .Chart.Name }}-n2",
-              "interface": "n2", 
-              "default-route": ["{{ .Values.multus.defaultGateway }}"]
+              "name": "{{ .Chart.Name }}-nfapi",
+              "interface": "nfapi"
             }{{ if .Values.multus.ruInterface.create }},{{ end }}
           {{- end }}
           {{- if .Values.multus.ruInterface.create }}
@@ -96,6 +95,7 @@ spec:
             AMF_IP_ADDRESS=$(if [[ $AMF_IP_ADDRESS ]]; then echo $AMF_IP_ADDRESS; else echo $AMF_HOST;fi);
             N2_IP_ADDRESS=$(ip -f inet addr show $N2_IF_NAME | grep -o "inet [0-9]*\.[0-9]*\.[0-9]*\.[0-9]*" | grep -o "[0-9]*\.[0-9]*\.[0-9]*\.[0-9]*");
             N3_IP_ADDRESS=$(ip -f inet addr show $N3_IF_NAME | grep -o "inet [0-9]*\.[0-9]*\.[0-9]*\.[0-9]*" | grep -o "[0-9]*\.[0-9]*\.[0-9]*\.[0-9]*");
+            NFAPI_IP_ADDRESS=$(ip -f inet addr show $NFAPI_IF_NAME | grep -o "inet [0-9]*\.[0-9]*\.[0-9]*\.[0-9]*" | grep -o "[0-9]*\.[0-9]*\.[0-9]*\.[0-9]*");
             PCI_ADD_U=PCIDEVICE_INTEL_COM_${SRIOV_RESOURCE_NAME_UPLANE^^};
             PCI_ADD_C=PCIDEVICE_INTEL_COM_${SRIOV_RESOURCE_NAME_CPLANE^^};
             U_PLANE_PCI_ADD=$(echo ${!PCI_ADD_U});
@@ -116,6 +116,8 @@ spec:
         env:
           #- name: RTE_SOCKET_MEM
           #value: "8192,8192"
+          - name: NFAPI_TRACE_LEVEL
+            value: info
           - name: RTE_HUGE_DIR
             value: /dev/hugepages
           - name: TZ
@@ -128,6 +130,12 @@ spec:
             value: {{ .Values.config.n2IfName }}
           - name: N3_IF_NAME
             value: {{ .Values.config.n3IfName }}
+          - name: NFAPI_IF_NAME
+            value: {{ .Values.config.nfapiIfName }}
+          - name: VNF_IP_ADDRESS
+            value: {{ .Values.config.vnfHost }}
+          - name: PNF_IP_ADDRESS
+            value: {{ .Values.config.pnfHost }}
           - name: SRIOV_RESOURCE_NAME_UPLANE
             value: {{ .Values.multus.ruInterface.sriovResourceNameUplane }}
           - name: SRIOV_RESOURCE_NAME_CPLANE
