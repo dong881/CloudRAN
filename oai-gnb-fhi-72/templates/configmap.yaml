@@ -271,24 +271,29 @@ data:
       dpdk_iova_mode = "{{ .Values.fhi72.dpdk_iova_mode }}";
       system_core = @SYSTEM_CORE@;
       io_core = @IO_CORE@;
-      worker_cores = (@WORKER_CORE_0@, @WORKER_CORE_1@);
+      worker_cores = (@WORKER_CORE_LISTS@);
       du_addr = ("{{ .Values.multus.ruInterface.cPlaneMacAdd }}", "{{ .Values.multus.ruInterface.uPlaneMacAdd }}");
       ru_addr = ("{{ .Values.config.ruCPlaneMacAdd }}", "{{ .Values.config.ruUPlaneMacAdd }}");
       mtu = {{ .Values.multus.ruInterface.mtu }};
       file_prefix = "{{ .Values.fhi72.file_prefix }}";
       fh_config = ({
-        T1a_cp_dl = ({{ .Values.fhi72.T1a_cp_dl.min }}, {{ .Values.fhi72.T1a_cp_dl.max }});
-        T1a_cp_ul = ({{ .Values.fhi72.T1a_cp_ul.min }}, {{ .Values.fhi72.T1a_cp_ul.max }});
-        T1a_up = ({{ .Values.fhi72.T1a_up.min }}, {{ .Values.fhi72.T1a_up.max }});
-        Ta4 = ({{ .Values.fhi72.Ta4.min }}, {{ .Values.fhi72.Ta4.max }});
-        ru_config = {
-          iq_width = {{ .Values.fhi72.ru_config.iq_width }};
-          iq_width_prach = {{ .Values.fhi72.ru_config.iq_width_prach }};
-        };
-        prach_config = {
-          eAxC_offset = {{ .Values.fhi72.prach_config.eAxC_offset }};
-          kbar = {{ .Values.fhi72.prach_config.kbar }};
-        };
-      });
+          {{- range $key, $value := .Values.fhi72.fh_config.timings }}
+          {{- if kindIs "map" $value }}
+          {{ $key }} = ({{ $value.min }}, {{ $value.max }});
+          {{- else }}
+          {{ $key }} = {{ $value }};
+          {{- end }}
+          {{- end }}
+          ru_config = {
+            {{- range $key, $value := .Values.fhi72.fh_config.ru_config }}
+            {{ $key }} = {{ $value }};
+            {{- end }}
+          };
+          prach_config = {
+            {{- range $key, $value := .Values.fhi72.fh_config.prach_config }}
+            {{ $key }} = {{ $value }};
+            {{- end }}
+          };
+        });
     };
 
