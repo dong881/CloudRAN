@@ -8,12 +8,12 @@ nfimage:   # image name either locally present or in a public/private repository
   #version: rhel9
 
   # Develop Branch
-  repository: oaisoftwarealliance/oai-gnb-fhi72
-  version: 2025.w30
+  #repository: oaisoftwarealliance/oai-gnb-fhi72
+  #version: 2025.w30
 
   # Ming NFAPI
   repository: bmw.ece.ntust.edu.tw/infidel/oai-gnb
-  version: latest
+  version: nfapi
 
 
   pullPolicy: IfNotPresent
@@ -89,7 +89,7 @@ config:
   mnc: "01"    # check the information with AMF, SMF, UPF
   tac: "1"     # check the information with AMF
   sst: "1"  #currently only 4 standard values are allowed 1,2,3,4
-  amfhost: "192.168.8.108" # BMW Open5GS
+  amfhost: "192.168.8.82" # BMW Open5GS
   n2IfName: "eth0"    # if multus.n2Interface.create is true then use n2
   n3IfName: "eth0"   #if multus.n3Interface.create is true then use n3 or you can only use 1 interface n2 or eth0
   vnfHost: "10.21.8.99"
@@ -130,7 +130,7 @@ resources:
   define: true
   limits:
     nf:
-      cpu: 4
+      cpu: 2
       #wr_isolcpus: 14
       memory: 16Gi
     tcpdump:
@@ -138,7 +138,7 @@ resources:
       memory: 128Mi
   requests:
     nf:
-      cpu: 4
+      cpu: 2
       #wr_isolcpus: 14
       memory: 16Gi
     tcpdump:
