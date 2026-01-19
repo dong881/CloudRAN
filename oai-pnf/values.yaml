@@ -13,7 +13,7 @@ nfimage:   # image name either locally present or in a public/private repository
 
   # MING NFAPI
   repository: bmw.ece.ntust.edu.tw/infidel/oai-gnb
-  version: latest
+  version: nfapi
 
   pullPolicy: IfNotPresent
 
