@@ -86,12 +86,14 @@ spec:
             memory: {{ .Values.resources.requests.nf.memory | quote }}
             cpu: {{ .Values.resources.requests.nf.cpu | quote }}
             hugepages-1Gi: {{ .Values.resources.requests.nf.hugepages | quote }}
+            windriver.com/isolcpus: {{ .Values.resources.requests.nf.wr_isolcpus | quote }}
           limits:
             {{ .Values.resources.requests.nf.sriovCplaneClaim.name }}: {{ .Values.resources.requests.nf.sriovCplaneClaim.quantity | quote  }}
             {{ .Values.resources.requests.nf.sriovUplaneClaim.name }}: {{ .Values.resources.requests.nf.sriovUplaneClaim.quantity | quote  }}
             memory: {{ .Values.resources.limits.nf.memory | quote }}
             cpu: {{ .Values.resources.limits.nf.cpu | quote }}
-            hugepages-1Gi: {{ .Values.resources.requests.nf.hugepages | quote }}
+            hugepages-1Gi: {{ .Values.resources.limits.nf.hugepages | quote }}
+            windriver.com/isolcpus: {{ .Values.resources.limits.nf.wr_isolcpus | quote }}
         {{- end}}
         securityContext:
           {{- toYaml .Values.securityContext | nindent 12 }}
@@ -109,18 +111,18 @@ spec:
             CU_IP_ADDRESS=$(getent hosts $CU_HOST | awk '{print $1}')
             CU_IP_ADDRESS=$(if [[ $CU_IP_ADDRESS ]]; then echo $CU_IP_ADDRESS; else echo $CU_HOST;fi);
             F1_DU_IP_ADDRESS=$(ip -f inet addr show $F1_IF_NAME | grep -o "inet [0-9]*\.[0-9]*\.[0-9]*\.[0-9]*" | grep -o "[0-9]*\.[0-9]*\.[0-9]*\.[0-9]*");
-            E="";
-            PCI_ADD_U=PCIDEVICE_OPENSHIFT_IO_${SRIOV_RESOURCE_NAME_UPLANE^^};
-            PCI_ADD_C=PCIDEVICE_OPENSHIFT_IO_${SRIOV_RESOURCE_NAME_CPLANE^^};
+            PCI_ADD_U=PCIDEVICE_INTEL_COM_${SRIOV_RESOURCE_NAME_UPLANE^^};
+            PCI_ADD_C=PCIDEVICE_INTEL_COM_${SRIOV_RESOURCE_NAME_CPLANE^^};
             U_PLANE_PCI_ADD=$(echo ${!PCI_ADD_U});
             C_PLANE_PCI_ADD=$(echo ${!PCI_ADD_C});
             LIST=($(grep -oP '@[a-zA-Z0-9_]+@' $CONF | grep CORE | sed -e "s#@##g" ));
-            CPUS=($(cat /sys/fs/cgroup/cpuset.cpus | awk '/-/{for (i=$1; i<=$2; i++)printf "%s%s",i,ORS;next} 1' ORS=' ' RS=, FS=-));
+            CPUS=($(cat /sys/fs/cgroup/cpuset/cpuset.cpus | awk '/-/{for (i=$1; i<=$2; i++)printf "%s%s",i,ORS;next} 1' ORS=' ' RS=, FS=-));
             for i in ${!LIST[*]}; do eval "${LIST[$i]}=${CPUS[$i]}";done;
             VARS=$(grep -oP '@[a-zA-Z0-9_]+@' $CONF);
             for v in ${VARS};do N=`echo $v | sed -e "s#@##g"`; E="${E} -e s/${v}/${!N}/g";E="${E#' -e '}";done;
             sed -e ${E} $CONF | tee /tmp/du.conf;
-            exec stdbuf -o0 /opt/oai-gnb/bin/nr-softmodem -O /tmp/du.conf $USE_ADDITIONAL_OPTIONS;
+            ip link set dev eth0 mtu 9216;
+            exec /opt/oai-gnb/bin/nr-softmodem -O /tmp/du.conf $USE_ADDITIONAL_OPTIONS;
         {{- else}}
         command:
           - /bin/sleep

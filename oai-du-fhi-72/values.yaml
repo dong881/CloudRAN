@@ -36,7 +36,7 @@ multus:
     IPadd: "10.20.9.100"
     Netmask: "22"
     # #name inside the pod is hardcoded right now
-    name: "f1"
+    #name: "f1"
     # if gatway is empty then it will be removed
     #Gateway: "172.21.11.254"
     hostInterface: "bond0"      # Interface of the host machine on which this pod will be scheduled
