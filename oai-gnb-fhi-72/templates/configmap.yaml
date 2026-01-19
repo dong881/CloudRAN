@@ -205,7 +205,7 @@ data:
       pucch0_dtx_threshold = 80;
       pusch_dtx_threshold = 10;
       max_ldpc_iterations = 10;
-      tx_amp_backoff_dB = 20; # needs to match O-RU configuration
+      tx_amp_backoff_dB = 12; # needs to match O-RU configuration
       L1_rx_thread_core = @L1_RX_CORE@;
       L1_tx_thread_core = @L1_TX_CORE@; # relevant after merge of l1_tx_thread
       phase_compensation = 0; # needs to match O-RU configuration

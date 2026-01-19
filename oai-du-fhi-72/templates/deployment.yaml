@@ -29,12 +29,12 @@ spec:
           }
           {{- if .Values.multus.ruInterface.create }}
           ,{
-                 "name": "{{ .Release.Name }}-{{ .Values.config.ruName }}-uplane",
-                 "mac": "{{ .Values.multus.ruInterface.uPlaneMacAdd }}"
+              "name": "{{ .Chart.Name }}-ru-uplane",
+              "mac": "{{ .Values.multus.ruInterface.uPlaneMacAdd }}"
           }
           ,{
-                 "name": "{{ .Release.Name }}-{{ .Values.config.ruName }}-cplane",
-                 "mac":  "{{ .Values.multus.ruInterface.cPlaneMacAdd }}"
+              "name": "{{ .Chart.Name }}-ru-cplane",
+              "mac": "{{ .Values.multus.ruInterface.cPlaneMacAdd }}"
           }
           {{- end }}
           ]
@@ -154,6 +154,10 @@ spec:
       {{- if .Values.nodeSelector}}
       nodeSelector:
          {{- toYaml .Values.nodeSelector | nindent 12 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
       {{- end }}
       {{- if .Values.nodeName}}
       nodeName: {{ .Values.nodeName }}
