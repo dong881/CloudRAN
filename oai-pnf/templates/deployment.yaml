@@ -1,0 +1,227 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Chart.Name }}
+  labels:
+    {{- include "oai-gnb.labels" . | nindent 4 }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "oai-gnb.selectorLabels" . | nindent 6 }}
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        {{- include "oai-gnb.selectorLabels" . | nindent 8 }}
+        app: oai-gnb
+    {{- if or .Values.multus.nfapiInterface.create .Values.multus.ruInterface.create }}
+      annotations:
+        cpu-quota.crio.io: "disable"
+        k8s.v1.cni.cncf.io/networks: |
+          [
+          {{- if .Values.multus.nfapiInterface.create }}
+            {
+              "name": "{{ .Chart.Name }}-nfapi",
+              "interface": "nfapi"
+            }{{ if .Values.multus.ruInterface.create }},{{ end }}
+          {{- end }}
+          {{- if .Values.multus.ruInterface.create }}
+            {
+              "name": "{{ .Chart.Name }}-ru-uplane",
+              "mac": "{{ .Values.multus.ruInterface.uPlaneMacAdd }}"
+            },
+            {
+              "name": "{{ .Chart.Name }}-ru-cplane",
+              "mac": "{{ .Values.multus.ruInterface.cPlaneMacAdd }}"
+            }
+          {{- end }}
+          ]
+    {{- end }}
+    spec:
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+    {{- if .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{ toYaml .Values.imagePullSecrets | indent 8 }}
+    {{- end }}
+      initContainers:
+      - command:
+        - sh
+        - -c
+        -  until ping -c 1  {{ .Values.config.vnfHost }}; do echo waiting for cu control plane to start; sleep 1; done
+        securityContext:
+           privileged: false
+           capabilities:
+             add:
+               - NET_RAW
+             drop:
+               - ALL
+        imagePullPolicy: IfNotPresent
+        image: "{{ .Values.nfimage.repository }}:{{ .Values.nfimage.version }}"
+        name: init
+        resources:
+          requests:
+            memory: 50Mi
+            cpu: 1m
+          limits:
+            memory: 50Mi
+            cpu: 1m
+      containers:
+      - name: gnb
+        image: "{{ .Values.nfimage.repository }}:{{ .Values.nfimage.version }}"
+        imagePullPolicy: {{ .Values.nfimage.pullPolicy }}
+        volumeMounts:
+          - name: pci
+            mountPath: /sys/bus/pci/devices
+          - mountPath: /dev/hugepages
+            name: hugepage
+          - mountPath: /opt/oai-gnb/etc
+            name: configuration
+            # subPath: gnb.conf
+          - mountPath: /dev/vfio
+            name: vfio
+        {{- if .Values.resources.define}}
+        resources:
+          requests:
+            {{ .Values.resources.requests.nf.sriovCplaneClaim.name }}: {{ .Values.resources.requests.nf.sriovCplaneClaim.quantity | quote  }}
+            {{ .Values.resources.requests.nf.sriovUplaneClaim.name }}: {{ .Values.resources.requests.nf.sriovUplaneClaim.quantity | quote  }}
+            memory: {{ .Values.resources.requests.nf.memory | quote }}
+            cpu: {{ .Values.resources.requests.nf.cpu | quote }}
+            hugepages-1Gi: {{ .Values.resources.requests.nf.hugepages | quote }}
+            windriver.com/isolcpus: {{ .Values.resources.requests.nf.wr_isolcpus | quote }}
+          limits:
+            {{ .Values.resources.requests.nf.sriovCplaneClaim.name }}: {{ .Values.resources.requests.nf.sriovCplaneClaim.quantity | quote  }}
+            {{ .Values.resources.requests.nf.sriovUplaneClaim.name }}: {{ .Values.resources.requests.nf.sriovUplaneClaim.quantity | quote  }}
+            memory: {{ .Values.resources.limits.nf.memory | quote }}
+            cpu: {{ .Values.resources.limits.nf.cpu | quote }}
+            hugepages-1Gi: {{ .Values.resources.limits.nf.hugepages | quote }}
+            windriver.com/isolcpus: {{ .Values.resources.limits.nf.wr_isolcpus | quote }}
+        {{- end}}
+        securityContext:
+          {{- toYaml .Values.securityContext | nindent 12 }}
+        ports:
+        - containerPort: 2152
+          name: n3
+          protocol: UDP
+        - containerPort: 36412
+          name: n2
+          protocol: SCTP
+        {{- if .Values.start.gnb}}
+        command: [ "/bin/bash", "-c" ]
+        args:
+         -  |
+            CONF='/opt/oai-gnb/etc/gnb.conf';
+            AMF_IP_ADDRESS=$(getent hosts $AMF_HOST | awk '{print $1}');
+            AMF_IP_ADDRESS=$(if [[ $AMF_IP_ADDRESS ]]; then echo $AMF_IP_ADDRESS; else echo $AMF_HOST;fi);
+            N2_IP_ADDRESS=$(ip -f inet addr show $N2_IF_NAME | grep -o "inet [0-9]*\.[0-9]*\.[0-9]*\.[0-9]*" | grep -o "[0-9]*\.[0-9]*\.[0-9]*\.[0-9]*");
+            N3_IP_ADDRESS=$(ip -f inet addr show $N3_IF_NAME | grep -o "inet [0-9]*\.[0-9]*\.[0-9]*\.[0-9]*" | grep -o "[0-9]*\.[0-9]*\.[0-9]*\.[0-9]*");
+            NFAPI_IP_ADDRESS=$(ip -f inet addr show $NFAPI_IF_NAME | grep -o "inet [0-9]*\.[0-9]*\.[0-9]*\.[0-9]*" | grep -o "[0-9]*\.[0-9]*\.[0-9]*\.[0-9]*");
+            PCI_ADD_U=PCIDEVICE_INTEL_COM_${SRIOV_RESOURCE_NAME_UPLANE^^};
+            PCI_ADD_C=PCIDEVICE_INTEL_COM_${SRIOV_RESOURCE_NAME_CPLANE^^};
+            U_PLANE_PCI_ADD=$(echo ${!PCI_ADD_U});
+            C_PLANE_PCI_ADD=$(echo ${!PCI_ADD_C});
+            LIST=($(grep -oP '@[a-zA-Z0-9_]+@' $CONF | grep CORE | sed -e "s#@##g" ));
+            CPUS=($(cat /sys/fs/cgroup/cpuset/cpuset.cpus | awk '/-/{for (i=$1; i<=$2; i++)printf "%s%s",i,ORS;next} 1' ORS=' ' RS=, FS=-));
+            for i in ${!LIST[*]}; do eval "${LIST[$i]}=${CPUS[$i]}";done;
+            VARS=$(grep -oP '@[a-zA-Z0-9_]+@' $CONF);
+            for v in ${VARS};do N=`echo $v | sed -e "s#@##g"`; E="${E} -e s/${v}/${!N}/g";E="${E#' -e '}";done;
+            sed -e ${E} $CONF | tee /tmp/du.conf;
+            ip link set dev eth0 mtu 9216;
+            exec /opt/oai-gnb/bin/nr-softmodem -O /tmp/du.conf $USE_ADDITIONAL_OPTIONS;
+        {{- else}}
+        command:
+          - /bin/sleep
+          - infinity
+        {{- end}}
+        env:
+          #- name: RTE_SOCKET_MEM
+          #value: "8192,8192"
+          - name: NFAPI_TRACE_LEVEL
+            value: info
+          - name: RTE_HUGE_DIR
+            value: /dev/hugepages
+          - name: TZ
+            value: {{ .Values.config.timeZone }}
+          - name: USE_ADDITIONAL_OPTIONS
+            value: {{ .Values.config.useAdditionalOptions }}
+          - name: AMF_HOST
+            value: {{ .Values.config.amfhost }}
+          - name: N2_IF_NAME
+            value: {{ .Values.config.n2IfName }}
+          - name: N3_IF_NAME
+            value: {{ .Values.config.n3IfName }}
+          - name: NFAPI_IF_NAME
+            value: {{ .Values.config.nfapiIfName }}
+          - name: VNF_IP_ADDRESS
+            value: {{ .Values.config.vnfHost }}
+          - name: PNF_IP_ADDRESS
+            value: {{ .Values.config.pnfHost }}
+          - name: SRIOV_RESOURCE_NAME_UPLANE
+            value: {{ .Values.multus.ruInterface.sriovResourceNameUplane }}
+          - name: SRIOV_RESOURCE_NAME_CPLANE
+            value: {{ .Values.multus.ruInterface.sriovResourceNameCplane }}
+      {{- if .Values.includeTcpDumpContainer }}
+      - name: tcpdump
+        image: "{{ .Values.tcpdumpimage.repository }}:{{ .Values.tcpdumpimage.version }}"
+        imagePullPolicy: {{ .Values.tcpdumpimage.pullPolicy }}
+        {{- if .Values.resources.define}}
+        resources:
+          requests:
+            memory: {{ .Values.resources.requests.tcpdump.memory | quote }}
+            cpu: {{ .Values.resources.requests.tcpdump.cpu | quote }}
+          limits:
+            memory: {{ .Values.resources.limits.tcpdump.memory | quote }}
+            cpu: {{ .Values.resources.limits.tcpdump.cpu | quote }}
+        {{- end}}
+        securityContext:
+           privileged: true
+           capabilities:
+              add:
+               - NET_ADMIN
+               - IPC_LOCK
+               - SYS_ADMIN
+               - SYS_RAWIO
+        {{- if .Values.start.tcpdump}}
+        command:
+          - /bin/sh
+          - -c
+          - /usr/sbin/tcpdump -i any -w /tmp/pcap/{{ .Chart.Name }}_`date +%Y-%m-%d_%H_%M-%S-%Z`.pcap
+        {{- else}}
+        command:
+          - /bin/sleep
+          - infinity
+        {{- end}}
+      {{- end }}
+      volumes:
+      - name: pci
+        hostPath:
+          path: /sys/bus/pci/devices
+      - configMap:
+          name: {{ .Chart.Name }}-configmap
+        name: configuration
+      - name: hugepage
+        hostPath:
+          path: /dev/hugepages
+          type: Directory
+      - name: vfio
+        hostPath:
+          path: /dev/vfio
+          type: Directory
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      serviceAccountName: {{ .Values.serviceAccount.name }}
+      terminationGracePeriodSeconds: {{ .Values.terminationGracePeriodSeconds }}
+      {{- if .Values.nodeSelector}}
+      nodeSelector: 
+         {{- toYaml .Values.nodeSelector | nindent 12 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- if .Values.nodeName}}
+      nodeName: {{ .Values.nodeName }}
+      {{- end }}
