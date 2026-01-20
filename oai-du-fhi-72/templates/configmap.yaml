@@ -9,7 +9,6 @@ data:
     Active_gNBs = ( "benetel-4T4R-indoor-n77");
     # Asn1_verbosity, choice in: none, info, annoying
     Asn1_verbosity = "none";
-    sa = 1;
     gNBs =
     (
      {
@@ -200,10 +199,10 @@ data:
     {
       num_cc = 1;
       tr_n_preference = "local_mac";
-      prach_dtx_threshold = 100;
+      prach_dtx_threshold = 130;
       pucch0_dtx_threshold = 80;
       pusch_dtx_threshold = 10;
-      max_ldpc_iterations = 10;
+      max_ldpc_iterations = 15;
       tx_amp_backoff_dB = 12; # needs to match O-RU configuration
       L1_rx_thread_core = @L1_RX_CORE@;
       L1_tx_thread_core = @L1_TX_CORE@; # relevant after merge of l1_tx_thread
@@ -218,15 +217,15 @@ data:
       nb_rx          = 4;
       att_tx         = 0
       att_rx         = 0;
-      bands          = [77];
+      bands          = [78];
       max_pdschReferenceSignalPower = -27;
       max_rxgain                    = 75;
       sf_extension                  = 0;
       eNB_instances  = [0];
       ru_thread_core = @RU_CORE@;
-      sl_ahead       = 10;
+      sl_ahead       = 5;
       ##beamforming 1x2 matrix: 1 layer x 2 antennas
-      bf_weights = [0x00007fff, 0x0000,0x00007fff, 0x0000];
+      #bf_weights = [0x00007fff, 0x0000,0x00007fff, 0x0000];
       tr_preference  = "raw_if4p5"; # important: activate FHI7.2
       do_precoding = 0; # needs to match O-RU configuration
     }
