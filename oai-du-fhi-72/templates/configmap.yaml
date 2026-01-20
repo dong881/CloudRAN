@@ -184,14 +184,10 @@ data:
       local_n_portd               = {{ .Values.config.f1duPort}};
       remote_n_portc              = 501;
       remote_n_portd              = {{ .Values.config.f1cuPort}};
-      dl_bler_target_upper=.35;
-      dl_bler_target_lower=.15;
       ul_bler_target_upper=.35;
       ul_bler_target_lower=.15;
       pusch_FailureThres          = 100;
-      ul_max_mcs                  = 28;
-      min_grant_prb               = 1;
-      deltaMCS_enable             = 0;
+      #ul_max_mcs                  = 28;
     }
     );
 
@@ -202,7 +198,7 @@ data:
       prach_dtx_threshold = 130;
       pucch0_dtx_threshold = 80;
       pusch_dtx_threshold = 10;
-      max_ldpc_iterations = 15;
+      max_ldpc_iterations = 10;
       tx_amp_backoff_dB = 12; # needs to match O-RU configuration
       L1_rx_thread_core = @L1_RX_CORE@;
       L1_tx_thread_core = @L1_TX_CORE@; # relevant after merge of l1_tx_thread
@@ -223,7 +219,7 @@ data:
       sf_extension                  = 0;
       eNB_instances  = [0];
       ru_thread_core = @RU_CORE@;
-      sl_ahead       = 12;
+      sl_ahead       = 5;
       ##beamforming 1x2 matrix: 1 layer x 2 antennas
       #bf_weights = [0x00007fff, 0x0000,0x00007fff, 0x0000];
       tr_preference  = "raw_if4p5"; # important: activate FHI7.2
