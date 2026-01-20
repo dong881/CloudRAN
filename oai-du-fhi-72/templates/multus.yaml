@@ -35,33 +35,34 @@ spec:
 {{- end }}
 {{- if .Values.multus.ruInterface.create }}
 ---
-apiVersion: sriovnetwork.openshift.io/v1
-kind: SriovNetwork
+apiVersion: "k8s.cni.cncf.io/v1"
+kind: NetworkAttachmentDefinition
 metadata:
-  name: {{ .Release.Name }}-{{ .Values.config.ruName }}-uplane
-  namespace:  {{ .Values.multus.ruInterface.sriovNetworkNamespace }}
-  labels:
-    app: oai-du
+  name: {{ .Chart.Name }}-ru-cplane
+  annotations:
+    k8s.v1.cni.cncf.io/resourceName: intel.com/{{ .Values.multus.ruInterface.sriovResourceNameCplane }}
 spec:
-  networkNamespace: {{ .Release.Namespace }}
-  resourceName:  {{ .Values.multus.ruInterface.sriovResourceNameUplane }}
-  vlan: {{ .Values.multus.ruInterface.vlan }}
-  spoofChk: "off"
-  trust: "on"
-  capabilities: '{ "mac": true }'
+  config: '{
+      "cniVersion": "0.3.1",
+      "type": "sriov",
+      "vlan": {{ .Values.multus.ruInterface.vlan }},
+      "spoofchk": "off",
+      "trust": "on"
+    }'
 ---
-apiVersion: sriovnetwork.openshift.io/v1
-kind: SriovNetwork
+apiVersion: "k8s.cni.cncf.io/v1"
+kind: NetworkAttachmentDefinition
 metadata:
-  name: {{ .Release.Name }}-{{ .Values.config.ruName }}-cplane
-  namespace: {{ .Values.multus.ruInterface.sriovNetworkNamespace }}
-  labels:
-    app: oai-du
+  name: {{ .Chart.Name }}-ru-uplane
+  annotations:
+    k8s.v1.cni.cncf.io/resourceName: intel.com/{{ .Values.multus.ruInterface.sriovResourceNameUplane }}
 spec:
-  networkNamespace: {{ .Release.Namespace }}
-  resourceName: {{ .Values.multus.ruInterface.sriovResourceNameCplane }}
-  vlan: {{ .Values.multus.ruInterface.vlan }}
-  spoofChk: "off"
-  trust: "on"
-  capabilities: '{ "mac": true }'
+  config: '{
+      "cniVersion": "0.3.1",
+      "type": "sriov",
+      "vlan": {{ .Values.multus.ruInterface.vlan }},
+      "spoofchk": "off",
+      "trust": "on"
+    }'
 {{- end }}
+

@@ -2,14 +2,18 @@ kubernetesType: Vanilla
 
 ## In case of using these charts on Openshift then please use UBI images
 nfimage:   # image name either locally present or in a public/private repository
-  repository: dramix.slices.cs.eurecom.fr/oai-gnb
-  version:  rlc_testing_rk-fece5b6c9b # image tag or develop
-  # pullPolicy: IfNotPresent or Never or Always
+  # BMW Branch
+  # repository: bmw.ece.ntust.edu.tw/infidel/oai-gnb-fhi72
+  # version: rhel9
+
+  # Develop Branch
+  repository: oaisoftwarealliance/oai-gnb-fhi72
+  version: 2025.w30
   pullPolicy: IfNotPresent
 
 ## good to use when pulling images from docker-hub mention
-imagePullSecrets:
-  - name: "regcred"
+# imagePullSecrets:
+#   - name: "regcred"
 
 serviceAccount:
   # Specifies whether a service account should be created
@@ -29,42 +33,66 @@ multus:
 #  defaultGateway: "172.21.23.254"
   f1Interface:
     create: true
-    IPadd: "172.21.21.1"
+    IPadd: "10.20.9.100"
     Netmask: "22"
     # #name inside the pod is hardcoded right now
-    # name: "f1"
+    #name: "f1"
     # if gatway is empty then it will be removed
     #Gateway: "172.21.11.254"
-    routes: [ {'dst': '172.21.4.0/22','gw': '172.21.23.254'}]
     hostInterface: "bond0"      # Interface of the host machine on which this pod will be scheduled
   ruInterface:            #Only needed if using a ethernet based RU/USRP
     create: true
     mtu: 9216
-    vlan: 9 #vvdn 4 benetel 3
+    vlan: 103 #vvdn 4 benetel 3
     cPlaneMacAdd: 00:11:22:33:44:67
     uPlaneMacAdd: 00:11:22:33:44:66
     sriovNetworkNamespace: sriov-network-operator
-    sriovResourceNameCplane: ru1vfioc
-    sriovResourceNameUplane: ru1vfiou
+    sriovResourceNameCplane: pci_sriov_net_fh_cp
+    sriovResourceNameUplane: pci_sriov_net_fh_up
 ## If you want to change more configuration parameters then you should mount the config file  
 # in templates/configmap.yaml
 # Example config files --> https://gitlab.eurecom.fr/oai/openairinterface5g/-/tree/develop/targets/PROJECTS/GENERIC-NR-5GC/CONF 
 config:
-  ruName: "benetel"
+  ruName: "pegatron"
   timeZone: "Europe/Paris"
   useAdditionalOptions: "--log_config.global_log_options level,nocolor,time"
-  mcc: "208"   # check the information with AMF, SMF, UPF
-  mnc: "99"    # check the information with AMF, SMF, UPF
+  mcc: "001"   # check the information with AMF, SMF, UPF
+  mnc: "01"    # check the information with AMF, SMF, UPF
   tac: "1"     # check the information with AMF
   sst: "1"     #currently only 4 standard values are allowed 1,2,3,4
-  ruCPlaneMacAdd: 8c:1f:64:d1:11:c0
-  ruUPlaneMacAdd: 8c:1f:64:d1:11:c0
+  ruCPlaneMacAdd: 48:21:0b:4b:93:8e
+  ruUPlaneMacAdd: 48:21:0b:4b:93:8e
   f1IfName: "f1"   #if multus.f1Interface.create is true then use f1
-  cuHost: "172.21.6.90" ## Ip-address or hostname 
+  cuHost: "10.20.9.99" ## Ip-address or hostname 
   f1cuPort: "2153"   #2153 if using same interface for f1 and n3 else standard port 2152 should be use if f1 and n3 interface are different
   f1duPort: "2153"   #2153 if using same interface for f1 and n3 else standard port 2152 should be use if f1 and n3 interface are different
   enableE2: false
   ricHost: "172.21.6.93"
+
+fhi72:
+  dpdk_iova_mode: "VA"
+  file_prefix: "fhi_72"
+  fh_config:
+    timings:
+      T1a_cp_dl:
+        min: 285
+        max: 470
+      T1a_cp_ul:
+        min: 285
+        max: 429
+      T1a_up:
+        min: 125
+        max: 350
+      Ta4:
+        min: 110
+        max: 180
+    ru_config:
+      iq_width: 9
+      iq_width_prach: 9
+    prach_config:
+      eAxC_offset: 4
+      kbar: 4
+    file_prefix: "fhi_72"
 
 ## Debugging section
 podSecurityContext:
@@ -92,34 +120,47 @@ resources:
   define: true
   limits:
     nf:
-      cpu: 14
-      memory: 5Gi
-      # size of the hugepages is 1 Gi
-      hugepages: 8Gi
+      #cpu: 8
+      #windriver.com/isolcpus: 8
+      wr_isolcpus: 14
+      memory: 16Gi
+      hugepages: 10Gi
       sriovCplaneClaim:
-        name: openshift.io/ru1vfioc
+        name: intel.com/pci_sriov_net_fh_cp
         quantity: 1
       sriovUplaneClaim:
-        name: openshift.io/ru1vfiou
+        name: intel.com/pci_sriov_net_fh_up
         quantity: 1
+    tcpdump:
+      cpu: 100m
+      memory: 128Mi
   requests:
     nf:
-      cpu: 14
-      memory: 5Gi
-      # size of the hugepages is 1 Gi
-      hugepages: 8Gi
+      #cpu: 8
+      #windriver.com/isolcpus: 8
+      wr_isolcpus: 14
+      memory: 16Gi
+      hugepages: 10Gi
       sriovCplaneClaim:
-        name: openshift.io/ru1vfioc
+        name: intel.com/pci_sriov_net_fh_cp
         quantity: 1
       sriovUplaneClaim:
-        name: openshift.io/ru1vfiou
+        name: intel.com/pci_sriov_net_fh_up
         quantity: 1
-tolerations: []
+    tcpdump:
+      cpu: 100m
+      memory: 128Mi
 
 affinity: {}
 
 terminationGracePeriodSeconds: 5
 
-nodeSelector: {}
+nodeSelector:
+  specialized: "radio"
+  kubernetes.io/hostname: "joule"
 
-nodeName:
+tolerations:
+  - key: "dedicated"
+    operator: "Equal"
+    value: "5g-radio"
+    effect: "NoSchedule"
