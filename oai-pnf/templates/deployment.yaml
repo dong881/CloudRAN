@@ -69,7 +69,7 @@ spec:
             memory: 50Mi
             cpu: 1m
       containers:
-      - name: gnb
+      - name: gnb-pnf
         image: "{{ .Values.nfimage.repository }}:{{ .Values.nfimage.version }}"
         imagePullPolicy: {{ .Values.nfimage.pullPolicy }}
         volumeMounts:

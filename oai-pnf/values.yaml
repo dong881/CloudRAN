@@ -139,10 +139,10 @@ resources:
   define: true
   limits:
     nf:
-      #cpu: 8
-      wr_isolcpus: 12
+      cpu: 0
+      wr_isolcpus: 8
       memory: 16Gi
-      hugepages: 20Gi
+      hugepages: 12Gi
       sriovCplaneClaim:
         name: intel.com/pci_sriov_net_fh_cp
         quantity: 1
@@ -154,10 +154,10 @@ resources:
       memory: 128Mi
   requests:
     nf:
-      #cpu: 8
-      wr_isolcpus: 12
+      cpu: 0
+      wr_isolcpus: 8
       memory: 16Gi
-      hugepages: 20Gi
+      hugepages: 12Gi
       sriovCplaneClaim:
         name: intel.com/pci_sriov_net_fh_cp
         quantity: 1

@@ -69,10 +69,12 @@ spec:
           requests:
             memory: {{ .Values.resources.requests.nf.memory | quote }}
             cpu: {{ .Values.resources.requests.nf.cpu | quote }}
+            hugepages-1Gi: {{ .Values.resources.requests.nf.hugepages | quote }}
             windriver.com/isolcpus: {{ .Values.resources.requests.nf.wr_isolcpus | quote }}
           limits:
             memory: {{ .Values.resources.limits.nf.memory | quote }}
             cpu: {{ .Values.resources.limits.nf.cpu | quote }}
+            hugepages-1Gi: {{ .Values.resources.limits.nf.hugepages | quote }}
             windriver.com/isolcpus: {{ .Values.resources.limits.nf.wr_isolcpus | quote }}
         {{- end}}
         securityContext:

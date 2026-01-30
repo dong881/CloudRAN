@@ -130,17 +130,19 @@ resources:
   define: true
   limits:
     nf:
-      cpu: 2
-      #wr_isolcpus: 14
+      cpu: 6
+      wr_isolcpus: 0
+      hugepages: 2Gi
       memory: 16Gi
     tcpdump:
       cpu: 100m
       memory: 128Mi
   requests:
     nf:
-      cpu: 2
-      #wr_isolcpus: 14
-      memory: 16Gi
+      cpu: 6
+      hugepages: 2Gi
+      wr_isolcpus: 0
+      memory: 6Gi
     tcpdump:
       cpu: 100m
       memory: 128Mi
