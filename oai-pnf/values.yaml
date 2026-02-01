@@ -74,8 +74,8 @@ config:
   tac: "1"     # check the information with AMF
   sst: "1"  #currently only 4 standard values are allowed 1,2,3,4
   #LiteON
-  ruCPlaneMacAdd: 48:21:0b:4b:93:8e  # Pegatron RU MAC address
-  ruUPlaneMacAdd: 48:21:0b:4b:93:8e  # Pegatron RU MAC address
+  ruCPlaneMacAdd: 48:21:0b:4b:dc:41   # Pegatron RU MAC address
+  ruUPlaneMacAdd: 48:21:0b:4b:dc:41   # Pegatron RU MAC address
   amfhost: "192.168.8.108" # BMW Open5GS
   n2IfName: "eth0"    # if multus.n2Interface.create is true then use n2
   n3IfName: "eth0"   #if multus.n3Interface.create is true then use n3 or you can only use 1 interface n2 or eth0
@@ -141,7 +141,7 @@ resources:
   limits:
     nf:
       #cpu: 8
-      wr_isolcpus: 12
+      wr_isolcpus: 8
       memory: 16Gi
       hugepages: 20Gi
       sriovCplaneClaim:
@@ -156,7 +156,7 @@ resources:
   requests:
     nf:
       #cpu: 8
-      wr_isolcpus: 12
+      wr_isolcpus: 8
       memory: 16Gi
       hugepages: 20Gi
       sriovCplaneClaim:
