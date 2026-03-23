@@ -3,12 +3,12 @@ kubernetesType: Vanilla  #Vanilla for community kubernetes distribution else Ope
 ## To know more about them follow this tutorial https://gitlab.eurecom.fr/oai/cn5g/oai-cn5g-fed/-/tree/master/openshift
 nfimage:   # image name either locally present or in a public/private repository
   # BMW Branch
-  repository: bmw.ece.ntust.edu.tw/minghong/oai-gnb
-  version: nycu-dl-enhanced
+  # repository: bmw.ece.ntust.edu.tw/minghong/oai-gnb
+  # version: 2026w11
 
   # Develop Branch
-  # repository: oaisoftwarealliance/oai-gnb-fhi72
-  # version: 2025.w30
+  repository: oaisoftwarealliance/oai-gnb-fhi72
+  version: 2025.w30
 
 
   pullPolicy: IfNotPresent
@@ -67,7 +67,7 @@ multus:
     mtu: 9216
     vlan: 103
     cPlaneMacAdd: 00:11:22:33:44:66  #vvdn 76:76:64:6e:00:01 #benetel 00:11:22:33:44:67
-    uPlaneMacAdd: 00:11:22:33:44:66 #vvdn 76:76:64:6e:00:02 #benetel 00:11:22:33:44:66
+    uPlaneMacAdd: 00:11:22:33:44:67 #vvdn 76:76:64:6e:00:02 #benetel 00:11:22:33:44:66
     sriovNetworkNamespace: sriov-network-operator
     sriovResourceNameCplane: pci_sriov_net_fh_cp
     sriovResourceNameUplane: pci_sriov_net_fh_up
