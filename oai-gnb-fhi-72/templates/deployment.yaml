@@ -16,29 +16,20 @@ spec:
       labels:
         {{- include "oai-gnb.selectorLabels" . | nindent 8 }}
         app: oai-gnb
-    {{- if or .Values.multus.n2Interface.create .Values.multus.ruInterface.create }}
+    {{- if .Values.multus.n2Interface.create }}
       annotations:
         cpu-quota.crio.io: "disable"
         k8s.v1.cni.cncf.io/networks: |
           [
-          {{- if .Values.multus.n2Interface.create }}
             {
               "name": "{{ .Chart.Name }}-n2",
               "interface": "n2", 
               "default-route": ["{{ .Values.multus.defaultGateway }}"]
-            }{{ if .Values.multus.ruInterface.create }},{{ end }}
-          {{- end }}
-          {{- if .Values.multus.ruInterface.create }}
-            {
-              "name": "{{ .Chart.Name }}-ru-uplane",
-              "mac": "{{ .Values.multus.ruInterface.uPlaneMacAdd }}"
-            },
-            {
-              "name": "{{ .Chart.Name }}-ru-cplane",
-              "mac": "{{ .Values.multus.ruInterface.cPlaneMacAdd }}"
             }
-          {{- end }}
           ]
+    {{- else }}
+      annotations:
+        cpu-quota.crio.io: "disable"
     {{- end }}
     spec:
       securityContext:
@@ -96,15 +87,21 @@ spec:
             AMF_IP_ADDRESS=$(if [[ $AMF_IP_ADDRESS ]]; then echo $AMF_IP_ADDRESS; else echo $AMF_HOST;fi);
             N2_IP_ADDRESS=$(ip -f inet addr show $N2_IF_NAME | grep -o "inet [0-9]*\.[0-9]*\.[0-9]*\.[0-9]*" | grep -o "[0-9]*\.[0-9]*\.[0-9]*\.[0-9]*");
             N3_IP_ADDRESS=$(ip -f inet addr show $N3_IF_NAME | grep -o "inet [0-9]*\.[0-9]*\.[0-9]*\.[0-9]*" | grep -o "[0-9]*\.[0-9]*\.[0-9]*\.[0-9]*");
-            PCI_ADD_U=PCIDEVICE_INTEL_COM_${SRIOV_RESOURCE_NAME_UPLANE^^};
-            PCI_ADD_C=PCIDEVICE_INTEL_COM_${SRIOV_RESOURCE_NAME_CPLANE^^};
-            U_PLANE_PCI_ADD=$(echo ${!PCI_ADD_U});
-            C_PLANE_PCI_ADD=$(echo ${!PCI_ADD_C});
+            VFIO_P_ARRAY=($(ls /sys/bus/pci/drivers/vfio-pci | grep 0000: | sort));
+            if [ ${#VFIO_P_ARRAY[@]} -eq 2 ]; then
+              C_PLANE_PCI_ADD=${VFIO_P_ARRAY[0]};
+              U_PLANE_PCI_ADD=${VFIO_P_ARRAY[1]};
+            else
+              PCI_ADD_U=PCIDEVICE_INTEL_COM_${SRIOV_RESOURCE_NAME_UPLANE^^}
+              PCI_ADD_C=PCIDEVICE_INTEL_COM_${SRIOV_RESOURCE_NAME_CPLANE^^}
+              U_PLANE_PCI_ADD=${!PCI_ADD_U}
+              C_PLANE_PCI_ADD=${!PCI_ADD_C}
+            fi
             LIST=($(grep -oP '@[a-zA-Z0-9_]+@' $CONF | grep CORE | sed -e "s#@##g" ));
             CPUS=($(cat /sys/fs/cgroup/cpuset/cpuset.cpus | awk '/-/{for (i=$1; i<=$2; i++)printf "%s%s",i,ORS;next} 1' ORS=' ' RS=, FS=-));
             for i in ${!LIST[*]}; do eval "${LIST[$i]}=${CPUS[$i]}";done;
             VARS=$(grep -oP '@[a-zA-Z0-9_]+@' $CONF);
-            for v in ${VARS};do N=`echo $v | sed -e "s#@##g"`; E="${E} -e s/${v}/${!N}/g";E="${E#' -e '}";done;
+            for v in ${VARS};do N=`echo $v | sed -e "s#@##g"`; E="${E} -e s#${v}#${!N}#g";E="${E#' -e '}";done;
             sed -e ${E} $CONF | tee /tmp/du.conf;
             ip link set dev eth0 mtu 9216;
             exec /opt/oai-gnb/bin/nr-softmodem -O /tmp/du.conf $USE_ADDITIONAL_OPTIONS;

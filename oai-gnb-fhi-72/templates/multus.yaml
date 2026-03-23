@@ -56,7 +56,7 @@ kind: NetworkAttachmentDefinition
 metadata:
   name: {{ .Chart.Name }}-ru-cplane
   annotations:
-    k8s.v1.cni.cncf.io/resourceName: intel.com/{{ .Values.multus.ruInterface.sriovResourceNameCplane }}
+    k8s.v1.cni.cncf.io/resourceName: {{ .Values.multus.ruInterface.sriovResourceNameCplane }}
 spec:
   config: '{
       "cniVersion": "0.3.1",
@@ -71,7 +71,7 @@ kind: NetworkAttachmentDefinition
 metadata:
   name: {{ .Chart.Name }}-ru-uplane
   annotations:
-    k8s.v1.cni.cncf.io/resourceName: intel.com/{{ .Values.multus.ruInterface.sriovResourceNameUplane }}
+    k8s.v1.cni.cncf.io/resourceName: {{ .Values.multus.ruInterface.sriovResourceNameUplane }}
 spec:
   config: '{
       "cniVersion": "0.3.1",

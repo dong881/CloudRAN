@@ -193,3 +193,7 @@ tolerations:
     operator: "Equal"
     value: "5g-radio"
     effect: "NoSchedule"
+  - key: "services"
+    operator: "Equal"
+    value: "disabled"
+    effect: "NoExecute"
