@@ -3,12 +3,12 @@ kubernetesType: Vanilla  #Vanilla for community kubernetes distribution else Ope
 ## To know more about them follow this tutorial https://gitlab.eurecom.fr/oai/cn5g/oai-cn5g-fed/-/tree/master/openshift
 nfimage:   # image name either locally present or in a public/private repository
   # BMW Branch
-  # repository: bmw.ece.ntust.edu.tw/infidel/oai-gnb-fhi72
-  # version: rhel9
+  repository: bmw.ece.ntust.edu.tw/minghong/oai-gnb
+  version: nycu-dl-enhanced
 
   # Develop Branch
-  repository: oaisoftwarealliance/oai-gnb-fhi72
-  version: 2025.w30
+  # repository: oaisoftwarealliance/oai-gnb-fhi72
+  # version: 2025.w30
 
 
   pullPolicy: IfNotPresent
