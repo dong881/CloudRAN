@@ -18,7 +18,7 @@ data:
 
         // Tracking area code, 0x0000 and 0xfffe are reserved values
         tracking_area_code  = {{ .Values.config.tac}} ;
-        plmn_list = ({ mcc = {{ .Values.config.mcc}}; mnc = {{ .Values.config.mnc}}; mnc_length = 2; snssaiList = ({ sst = {{ .Values.config.sst}} }) });
+        plmn_list = ({ mcc = {{ .Values.config.mcc}}; mnc = {{ .Values.config.mnc}}; mnc_length = 2; snssaiList = ({ sst = {{ .Values.config.sst}}, sd = 66051 }) });
 
         nr_cellid = 1;
 
@@ -28,7 +28,6 @@ data:
         pdsch_AntennaPorts_N1 = 2;
         maxMIMO_layers        = 2;
         pusch_AntennaPorts    = 4;
-        maxMIMO_layers        = 2;
         do_CSIRS              = 1;
         do_SRS                = 0 ;
         sib1_tda        = 15;

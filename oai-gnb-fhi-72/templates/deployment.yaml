@@ -68,7 +68,7 @@ spec:
             {{ .Values.resources.requests.nf.sriovUplaneClaim.name }}: {{ .Values.resources.requests.nf.sriovUplaneClaim.quantity | quote  }}
             memory: {{ .Values.resources.requests.nf.memory | quote }}
             cpu: {{ .Values.resources.requests.nf.cpu | quote }}
-              #hugepages-1Gi: {{ .Values.resources.requests.nf.hugepages | quote }}
+            hugepages-1Gi: {{ .Values.resources.requests.nf.hugepages | quote }}
           limits:
             {{ .Values.resources.requests.nf.sriovCplaneClaim.name }}: {{ .Values.resources.requests.nf.sriovCplaneClaim.quantity | quote  }}
             {{ .Values.resources.requests.nf.sriovUplaneClaim.name }}: {{ .Values.resources.requests.nf.sriovUplaneClaim.quantity | quote  }}
@@ -88,7 +88,8 @@ spec:
         {{- if .Values.start.gnb}}
         command: [ "/bin/bash", "-c" ]
         args:
-         -  CONF='/opt/oai-gnb/etc/gnb.conf';
+         -  |
+            CONF='/opt/oai-gnb/etc/gnb.conf';
             AMF_IP_ADDRESS=$(getent hosts $AMF_HOST | awk '{print $1}');
             AMF_IP_ADDRESS=$(if [[ $AMF_IP_ADDRESS ]]; then echo $AMF_IP_ADDRESS; else echo $AMF_HOST;fi);
             N2_IP_ADDRESS=$(ip -f inet addr show $N2_IF_NAME | grep -o "inet [0-9]*\.[0-9]*\.[0-9]*\.[0-9]*" | grep -o "[0-9]*\.[0-9]*\.[0-9]*\.[0-9]*");
@@ -98,7 +99,8 @@ spec:
             U_PLANE_PCI_ADD=$(echo ${!PCI_ADD_U});
             C_PLANE_PCI_ADD=$(echo ${!PCI_ADD_C});
             LIST=($(grep -oP '@[a-zA-Z0-9_]+@' $CONF | grep CORE | sed -e "s#@##g" ));
-            CPUS=($(awk '/Cpus_allowed_list/{print $2}' /proc/self/status | awk '/-/{for (i=$1; i<=$2; i++)printf "%s%s",i,ORS;next} 1' ORS=' ' RS=, FS=-));
+            CGROUP_PATH=$(cat /proc/self/cgroup | cut -d: -f3);
+            CPUS=($(cat /sys/fs/cgroup${CGROUP_PATH}/cpuset.cpus | awk '/-/{for (i=$1; i<=$2; i++)printf "%s%s",i,ORS;next} 1' ORS=' ' RS=, FS=-));
             for i in ${!LIST[*]}; do eval "${LIST[$i]}=${CPUS[$i]}";done;
             VARS=$(grep -oP '@[a-zA-Z0-9_]+@' $CONF);
             for v in ${VARS};do N=`echo $v | sed -e "s#@##g"`; E="${E} -e s/${v}/${!N}/g";E="${E#' -e '}";done;
@@ -168,9 +170,10 @@ spec:
       - configMap:
           name: {{ .Chart.Name }}-configmap
         name: configuration
-      - emptyDir:
-          medium: HugePages-1Gi
-        name: hugepage
+      - name: hugepage
+        hostPath:
+          path: /dev/hugepages
+          type: Directory
       - name: vfio
         hostPath:
           path: /dev/vfio

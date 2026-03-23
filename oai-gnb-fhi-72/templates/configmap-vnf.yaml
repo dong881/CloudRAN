@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Chart.Name }}-vnf-configmap
+  labels:
+    app: {{ .Values.nfapi.vnf.name }}
+data:
+  gnb-vnf.sa.band78.273prb.nfapi-metanoia.conf: |
+{{ .Files.Get "dev/conf/gnb-vnf.sa.band78.273prb.nfapi-metanoia.conf" | indent 4 }}

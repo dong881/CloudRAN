@@ -1,5 +1,11 @@
 kubernetesType: Vanilla  #Vanilla for community kubernetes distribution else Openshift for Openshift
 
+nfapi:
+  vnf:
+    name: vnf
+  pnf:
+    name: pnf
+
 ## In case of using these charts on Openshift then please use UBI images
 ## To know more about them follow this tutorial https://gitlab.eurecom.fr/oai/cn5g/oai-cn5g-fed/-/tree/master/openshift
 nfimage:   # image name either locally present or in a public/private repository
@@ -70,8 +76,8 @@ multus:
     cPlaneMacAdd: 00:11:22:33:44:66  #vvdn 76:76:64:6e:00:01 #benetel 00:11:22:33:44:67
     uPlaneMacAdd: 00:11:22:33:44:66 #vvdn 76:76:64:6e:00:02 #benetel 00:11:22:33:44:66
     sriovNetworkNamespace: sriov-network-operator
-    sriovResourceNameCplane: fh_sriov_cp
-    sriovResourceNameUplane: fh_sriov_up
+    sriovResourceNameCplane: fh_sriov_cp_lao
+    sriovResourceNameUplane: fh_sriov_up_lao
 
 ## If you want to change more configuration parameters then you should mount the config file
 # in templates/configmap.yaml
@@ -94,13 +100,15 @@ config:
   mnc: "01"    # check the information with AMF, SMF, UPF
   tac: "1"     # check the information with AMF
   sst: "1"  #currently only 4 standard values are allowed 1,2,3,4
+  sd: "66051"
   #LiteON
   ruCPlaneMacAdd: 48:21:0b:4b:93:8e  # Pegatron RU MAC address
   ruUPlaneMacAdd: 48:21:0b:4b:93:8e  # Pegatron RU MAC address
   #amfhost: "oai-amf.oai-cn"  # amf ip-address or service-name oai-amf-svc or 172.21.6.94
   #amfhost: "10.0.6.246"  # Open5GS Kubernetes
-  #amfhost: "open5gs-amf-ngap.5gs-cn"
-  amfhost: "192.168.8.108" # BMW Open5GS
+  amfhost: "open5gs-amf-ngap.5gs-cn"
+  #amfhost: "192.168.8.108" # BMW Open5GS
+  #amfhost: "192.168.70.132" # BMW OAI CN
   n2IfName: "eth0"    # if multus.n2Interface.create is true then use n2
   n3IfName: "eth0"   #if multus.n3Interface.create is true then use n3 or you can only use 1 interface n2 or eth0
 
@@ -140,16 +148,16 @@ resources:
   define: true
   limits:
     nf:
-      cpu: 20
+      cpu: 14
       memory: 16Gi
       # size of the hugepages is 1 Gi
       hugepages: 10Gi
         #hugepages: 10Gi
       sriovCplaneClaim:
-        name: openshift.io/fh_sriov_cp
+        name: openshift.io/fh_sriov_cp_lao
         quantity: 1
       sriovUplaneClaim:
-        name: openshift.io/fh_sriov_up
+        name: openshift.io/fh_sriov_up_lao
         quantity: 1
     #If tcpdump container is disabled this value will not be used
     tcpdump:
@@ -157,15 +165,15 @@ resources:
       memory: 128Mi
   requests:
     nf:
-      cpu: 20
+      cpu: 14
       memory: 16Gi
       # size of the hugepages is 1 Gi
       hugepages: 10Gi
       sriovCplaneClaim:
-        name: openshift.io/fh_sriov_cp
+        name: openshift.io/fh_sriov_cp_lao
         quantity: 1
       sriovUplaneClaim:
-        name: openshift.io/fh_sriov_up
+        name: openshift.io/fh_sriov_up_lao
         quantity: 1
     #If tcpdump container is disabled this value will not be used
     tcpdump:
@@ -179,6 +187,7 @@ affinity: {}
 terminationGracePeriodSeconds: 5
 
 nodeSelector:
-  kubernetes.io/hostname: "worker-rt-00"
+  #kubernetes.io/hostname: "worker-rt-00"
+  kubernetes.io/hostname: "lavoisier"
 
 nodeName:
