@@ -12,8 +12,8 @@ nfimage:   # image name either locally present or in a public/private repository
   # version: 2025.w30
 
   # MING NFAPI
-  repository: bmw.ece.ntust.edu.tw/infidel/oai-gnb
-  version: nfapi
+  repository: bmw.ece.ntust.edu.tw/minghong/oai-gnb
+  version: rApp 
 
   pullPolicy: IfNotPresent
 
