@@ -16,7 +16,7 @@ nfimage:   # image name either locally present or in a public/private repository
   version: latest
 
 
-  pullPolicy: IfNotPresent
+  pullPolicy: Always
 
 # good to use when pulling images from docker-hub mention
 #imagePullSecrets:
