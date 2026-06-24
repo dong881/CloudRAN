@@ -186,7 +186,7 @@ data:
       dl_bler_target_lower        = .15;
       ul_bler_target_upper        = .35;
       ul_bler_target_lower        = .15;
-      pusch_FailureThres          = 100;
+      pusch_FailureThres          = 1000;
       dl_min_mcs                  = 24;
       }
     )
@@ -219,8 +219,8 @@ data:
       max_rxgain                    = 75;
       sf_extension                  = 0;
       eNB_instances  = [0];
-      ru_thread_core = 12;
-      sl_ahead       = 5;
+      ru_thread_core = 13;
+      sl_ahead       = 6;
       tr_preference  = "raw_if4p5"; # important: activate FHI7.2
       do_precoding   = 0; # needs to match O-RU configuration
     }

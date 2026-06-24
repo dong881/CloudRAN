@@ -38,7 +38,7 @@ data:
       sf_extension                  = 0;
       eNB_instances  = [0];
       ru_thread_core = @RU_CORE@;
-      sl_ahead       = 5;
+      sl_ahead       = 6;
       tr_preference  = "raw_if4p5"; # important: activate FHI7.2
       do_precoding   = 0; # needs to match O-RU configuration
     }
