@@ -61,9 +61,11 @@ spec:
   config: '{
       "cniVersion": "0.3.1",
       "type": "sriov",
+      "deviceType": "vfio-pci",
       "vlan": {{ .Values.multus.ruInterface.vlan }},
       "spoofchk": "off",
-      "trust": "on"
+      "trust": "on",
+      "mtu": {{ .Values.multus.ruInterface.mtu }}
     }'
 ---
 apiVersion: "k8s.cni.cncf.io/v1"
@@ -76,9 +78,11 @@ spec:
   config: '{
       "cniVersion": "0.3.1",
       "type": "sriov",
+      "deviceType": "vfio-pci",
       "vlan": {{ .Values.multus.ruInterface.vlan }},
       "spoofchk": "off",
-      "trust": "on"
+      "trust": "on",
+      "mtu": {{ .Values.multus.ruInterface.mtu }}
     }'
 {{- end }}
 
