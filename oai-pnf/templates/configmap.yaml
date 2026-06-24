@@ -63,7 +63,7 @@ data:
       file_prefix = "{{ .Values.fhi72.file_prefix }}";
       system_core = @SYSTEM_CORE@;
       io_core = @IO_CORE@;
-      worker_cores = (@WORKER_CORE_0@, @WORKER_CORE_1@);
+      worker_cores = (@WORKER_CORE_0@);
       ru_addr = ("{{ .Values.config.ruCPlaneMacAdd }}", "{{ .Values.config.ruUPlaneMacAdd }}");
       mtu = {{ .Values.multus.ruInterface.mtu }}; # note: 1500 works as well, with both E and F releases
       fh_config = ({

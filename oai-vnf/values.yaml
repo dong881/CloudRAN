@@ -130,7 +130,7 @@ resources:
   define: true
   limits:
     nf:
-      cpu: 4
+      cpu: 5
       wr_isolcpus: 0
       memory: 8Gi
       hugepages: 4Gi
