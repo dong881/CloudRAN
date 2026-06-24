@@ -20,28 +20,36 @@ spec:
         cpu-quota.crio.io: "disable"
         k8s.v1.cni.cncf.io/networks: |
           [
-          {{- if .Values.multus.n2Interface.create }}
+          {{- $comma := false -}}
+          {{- if .Values.multus.n2Interface.create -}}
             {
               "name": "{{ .Chart.Name }}-n2",
-              "interface": "n2", 
+              "interface": "n2"
+              {{- if .Values.multus.defaultGateway -}},
               "default-route": ["{{ .Values.multus.defaultGateway }}"]
+              {{- end }}
             }
-            {{ if .Values.multus.n3Interface.create }},{{ end }}
-          {{- end }}
-          {{- if .Values.multus.n3Interface.create }}
+            {{- $comma = true -}}
+          {{- end -}}
+          {{- if .Values.multus.n3Interface.create -}}
+            {{- if $comma -}},{{- end -}}
             {
               "name": "{{ .Chart.Name }}-n3",
-              "interface": "n3", 
+              "interface": "n3"
+              {{- if .Values.multus.defaultGateway -}},
               "default-route": ["{{ .Values.multus.defaultGateway }}"]
+              {{- end }}
             }
-            {{ if .Values.multus.nfapiInterface.create }},{{ end }}
-          {{- end }}
-          {{- if .Values.multus.nfapiInterface.create }}
+            {{- $comma = true -}}
+          {{- end -}}
+          {{- if .Values.multus.nfapiInterface.create -}}
+            {{- if $comma -}},{{- end -}}
             {
               "name": "{{ .Chart.Name }}-nfapi",
               "interface": "nfapi"
             }
-          {{- end }}
+            {{- $comma = true -}}
+          {{- end -}}
           ]
     spec:
       securityContext:
@@ -69,11 +77,15 @@ spec:
           requests:
             memory: {{ .Values.resources.requests.nf.memory | quote }}
             cpu: {{ .Values.resources.requests.nf.cpu | quote }}
+            {{- if and .Values.resources.requests.nf.wr_isolcpus (ne (int .Values.resources.requests.nf.wr_isolcpus) 0) }}
             windriver.com/isolcpus: {{ .Values.resources.requests.nf.wr_isolcpus | quote }}
+            {{- end }}
           limits:
             memory: {{ .Values.resources.limits.nf.memory | quote }}
             cpu: {{ .Values.resources.limits.nf.cpu | quote }}
+            {{- if and .Values.resources.limits.nf.wr_isolcpus (ne (int .Values.resources.limits.nf.wr_isolcpus) 0) }}
             windriver.com/isolcpus: {{ .Values.resources.limits.nf.wr_isolcpus | quote }}
+            {{- end }}
         {{- end}}
         securityContext:
           {{- toYaml .Values.securityContext | nindent 12 }}
@@ -94,12 +106,15 @@ spec:
             N2_IP_ADDRESS=$(ip -f inet addr show $N2_IF_NAME | grep -o "inet [0-9]*\.[0-9]*\.[0-9]*\.[0-9]*" | grep -o "[0-9]*\.[0-9]*\.[0-9]*\.[0-9]*");
             N3_IP_ADDRESS=$(ip -f inet addr show $N3_IF_NAME | grep -o "inet [0-9]*\.[0-9]*\.[0-9]*\.[0-9]*" | grep -o "[0-9]*\.[0-9]*\.[0-9]*\.[0-9]*");
             NFAPI_IP_ADDRESS=$(ip -f inet addr show $NFAPI_IF_NAME | grep -o "inet [0-9]*\.[0-9]*\.[0-9]*\.[0-9]*" | grep -o "[0-9]*\.[0-9]*\.[0-9]*\.[0-9]*");
-            PCI_ADD_U=PCIDEVICE_INTEL_COM_${SRIOV_RESOURCE_NAME_UPLANE^^};
-            PCI_ADD_C=PCIDEVICE_INTEL_COM_${SRIOV_RESOURCE_NAME_CPLANE^^};
+            RES_U=$(echo ${SRIOV_RESOURCE_NAME_UPLANE} | tr '/.' '__' | tr 'a-z' 'A-Z')
+            RES_C=$(echo ${SRIOV_RESOURCE_NAME_CPLANE} | tr '/.' '__' | tr 'a-z' 'A-Z')
+            PCI_ADD_U=PCIDEVICE_${RES_U}
+            PCI_ADD_C=PCIDEVICE_${RES_C}
             U_PLANE_PCI_ADD=$(echo ${!PCI_ADD_U});
             C_PLANE_PCI_ADD=$(echo ${!PCI_ADD_C});
             LIST=($(grep -oP '@[a-zA-Z0-9_]+@' $CONF | grep CORE | sed -e "s#@##g" ));
-            CPUS=($(cat /sys/fs/cgroup/cpuset/cpuset.cpus | awk '/-/{for (i=$1; i<=$2; i++)printf "%s%s",i,ORS;next} 1' ORS=' ' RS=, FS=-));
+            AFFINITY=$(taskset -c -p $$ | awk -F: '{print $2}' | tr -d ' ')
+            CPUS=($(echo $AFFINITY | awk '/-/{for (i=$1; i<=$2; i++)printf "%s%s",i,ORS;next} 1' ORS=' ' RS=, FS=-))
             for i in ${!LIST[*]}; do eval "${LIST[$i]}=${CPUS[$i]}";done;
             VARS=$(grep -oP '@[a-zA-Z0-9_]+@' $CONF);
             for v in ${VARS};do N=`echo $v | sed -e "s#@##g"`; E="${E} -e s/${v}/${!N}/g";E="${E#' -e '}";done;
