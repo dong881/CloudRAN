@@ -60,6 +60,10 @@ spec:
             name: vfio
           - name: oai-mp-f-ming
             mountPath: /mnt/oai_mp_f_ming
+          {{- if .Values.persistence.enabled }}
+          - name: logs
+            mountPath: /var/log/oai
+          {{- end }}
 
         {{- if .Values.resources.define}}
         resources:
@@ -116,7 +120,13 @@ spec:
             sed -e ${E} $CONF | tee /tmp/du.conf;
             ulimit -l unlimited;
             ip link set dev eth0 mtu 9216;
+            {{- if .Values.persistence.enabled }}
+            LOG_FILE="/var/log/oai/pnf-$(date +%Y%m%d_%H%M%S).log";
+            mkdir -p /var/log/oai;
+            exec /opt/oai-gnb/bin/nr-softmodem -O /tmp/du.conf $USE_ADDITIONAL_OPTIONS 2>&1 | tee -a "${LOG_FILE}";
+            {{- else }}
             exec /opt/oai-gnb/bin/nr-softmodem -O /tmp/du.conf $USE_ADDITIONAL_OPTIONS;
+            {{- end }}
         {{- else}}
         command:
           - /bin/sleep
@@ -200,6 +210,11 @@ spec:
         hostPath:
           path: /home/oai72_su/oai_mp_f_ming
           type: Directory
+      {{- if .Values.persistence.enabled }}
+      - name: logs
+        persistentVolumeClaim:
+          claimName: {{ .Chart.Name }}-logs
+      {{- end }}
 
       dnsPolicy: ClusterFirst
       restartPolicy: Always

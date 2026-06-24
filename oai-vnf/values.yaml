@@ -161,3 +161,12 @@ tolerations:
     operator: "Equal"
     value: "5g-radio"
     effect: "NoSchedule"
+
+## Log Persistence — mount an NFS-backed PVC so full VNF logs are
+## available on the NFS server even after pod restart/eviction.
+persistence:
+  enabled: true
+  ## Use nfs-client (ReadWriteMany, survives node rescheduling)
+  ## or openebs-hostpath (ReadWriteOnce, node-local, faster IO)
+  storageClass: nfs-client
+  size: 10Gi

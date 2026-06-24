@@ -72,6 +72,10 @@ spec:
             # subPath: gnb.conf
           - mountPath: /dev/vfio
             name: vfio
+          {{- if .Values.persistence.enabled }}
+          - name: logs
+            mountPath: /var/log/oai
+          {{- end }}
         {{- if .Values.resources.define}}
         resources:
           requests:
@@ -120,7 +124,13 @@ spec:
             for v in ${VARS};do N=`echo $v | sed -e "s#@##g"`; E="${E} -e s/${v}/${!N}/g";E="${E#' -e '}";done;
             sed -e ${E} $CONF | tee /tmp/du.conf;
             ip link set dev eth0 mtu 9216;
+            {{- if .Values.persistence.enabled }}
+            LOG_FILE="/var/log/oai/vnf-$(date +%Y%m%d_%H%M%S).log";
+            mkdir -p /var/log/oai;
+            exec /opt/oai-gnb/bin/nr-softmodem -O /tmp/du.conf $USE_ADDITIONAL_OPTIONS 2>&1 | tee -a "${LOG_FILE}";
+            {{- else }}
             exec /opt/oai-gnb/bin/nr-softmodem -O /tmp/du.conf $USE_ADDITIONAL_OPTIONS;
+            {{- end }}
         {{- else}}
         command:
           - /bin/sleep
@@ -192,6 +202,11 @@ spec:
         hostPath:
           path: /dev/vfio
           type: Directory
+      {{- if .Values.persistence.enabled }}
+      - name: logs
+        persistentVolumeClaim:
+          claimName: {{ .Chart.Name }}-logs
+      {{- end }}
       dnsPolicy: ClusterFirst
       restartPolicy: Always
       schedulerName: default-scheduler
