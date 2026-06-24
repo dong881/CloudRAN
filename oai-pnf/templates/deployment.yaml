@@ -29,12 +29,10 @@ spec:
           {{- end }}
           {{- if .Values.multus.ruInterface.create }}
             {
-              "name": "{{ .Chart.Name }}-ru-uplane",
-              "mac": "{{ .Values.multus.ruInterface.uPlaneMacAdd }}"
+              "name": "{{ .Chart.Name }}-ru-uplane"
             },
             {
-              "name": "{{ .Chart.Name }}-ru-cplane",
-              "mac": "{{ .Values.multus.ruInterface.cPlaneMacAdd }}"
+              "name": "{{ .Chart.Name }}-ru-cplane"
             }
           {{- end }}
           ]
@@ -60,6 +58,9 @@ spec:
             # subPath: gnb.conf
           - mountPath: /dev/vfio
             name: vfio
+          - name: oai-mp-f-ming
+            mountPath: /mnt/oai_mp_f_ming
+
         {{- if .Values.resources.define}}
         resources:
           requests:
@@ -68,14 +69,18 @@ spec:
             memory: {{ .Values.resources.requests.nf.memory | quote }}
             cpu: {{ .Values.resources.requests.nf.cpu | quote }}
             hugepages-1Gi: {{ .Values.resources.requests.nf.hugepages | quote }}
+            {{- if and .Values.resources.requests.nf.wr_isolcpus (ne (int .Values.resources.requests.nf.wr_isolcpus) 0) }}
             windriver.com/isolcpus: {{ .Values.resources.requests.nf.wr_isolcpus | quote }}
+            {{- end }}
           limits:
             {{ .Values.resources.requests.nf.sriovCplaneClaim.name }}: {{ .Values.resources.requests.nf.sriovCplaneClaim.quantity | quote  }}
             {{ .Values.resources.requests.nf.sriovUplaneClaim.name }}: {{ .Values.resources.requests.nf.sriovUplaneClaim.quantity | quote  }}
             memory: {{ .Values.resources.limits.nf.memory | quote }}
             cpu: {{ .Values.resources.limits.nf.cpu | quote }}
             hugepages-1Gi: {{ .Values.resources.limits.nf.hugepages | quote }}
+            {{- if and .Values.resources.limits.nf.wr_isolcpus (ne (int .Values.resources.limits.nf.wr_isolcpus) 0) }}
             windriver.com/isolcpus: {{ .Values.resources.limits.nf.wr_isolcpus | quote }}
+            {{- end }}
         {{- end}}
         securityContext:
           {{- toYaml .Values.securityContext | nindent 12 }}
@@ -96,16 +101,20 @@ spec:
             N2_IP_ADDRESS=$(ip -f inet addr show $N2_IF_NAME | grep -o "inet [0-9]*\.[0-9]*\.[0-9]*\.[0-9]*" | grep -o "[0-9]*\.[0-9]*\.[0-9]*\.[0-9]*");
             N3_IP_ADDRESS=$(ip -f inet addr show $N3_IF_NAME | grep -o "inet [0-9]*\.[0-9]*\.[0-9]*\.[0-9]*" | grep -o "[0-9]*\.[0-9]*\.[0-9]*\.[0-9]*");
             NFAPI_IP_ADDRESS=$(ip -f inet addr show $NFAPI_IF_NAME | grep -o "inet [0-9]*\.[0-9]*\.[0-9]*\.[0-9]*" | grep -o "[0-9]*\.[0-9]*\.[0-9]*\.[0-9]*");
-            PCI_ADD_U=PCIDEVICE_INTEL_COM_${SRIOV_RESOURCE_NAME_UPLANE^^};
-            PCI_ADD_C=PCIDEVICE_INTEL_COM_${SRIOV_RESOURCE_NAME_CPLANE^^};
+            RES_U=$(echo ${SRIOV_RESOURCE_NAME_UPLANE} | tr '/.' '__' | tr 'a-z' 'A-Z')
+            RES_C=$(echo ${SRIOV_RESOURCE_NAME_CPLANE} | tr '/.' '__' | tr 'a-z' 'A-Z')
+            PCI_ADD_U=PCIDEVICE_${RES_U}
+            PCI_ADD_C=PCIDEVICE_${RES_C}
             U_PLANE_PCI_ADD=$(echo ${!PCI_ADD_U});
             C_PLANE_PCI_ADD=$(echo ${!PCI_ADD_C});
             LIST=($(grep -oP '@[a-zA-Z0-9_]+@' $CONF | grep CORE | sed -e "s#@##g" ));
-            CPUS=($(cat /sys/fs/cgroup/cpuset/cpuset.cpus | awk '/-/{for (i=$1; i<=$2; i++)printf "%s%s",i,ORS;next} 1' ORS=' ' RS=, FS=-));
+            AFFINITY=$(taskset -c -p $$ | awk -F: '{print $2}' | tr -d ' ')
+            CPUS=($(echo $AFFINITY | awk '/-/{for (i=$1; i<=$2; i++)printf "%s%s",i,ORS;next} 1' ORS=' ' RS=, FS=-))
             for i in ${!LIST[*]}; do eval "${LIST[$i]}=${CPUS[$i]}";done;
             VARS=$(grep -oP '@[a-zA-Z0-9_]+@' $CONF);
             for v in ${VARS};do N=`echo $v | sed -e "s#@##g"`; E="${E} -e s/${v}/${!N}/g";E="${E#' -e '}";done;
             sed -e ${E} $CONF | tee /tmp/du.conf;
+            ulimit -l unlimited;
             ip link set dev eth0 mtu 9216;
             exec /opt/oai-gnb/bin/nr-softmodem -O /tmp/du.conf $USE_ADDITIONAL_OPTIONS;
         {{- else}}
@@ -187,6 +196,11 @@ spec:
         hostPath:
           path: /dev/vfio
           type: Directory
+      - name: oai-mp-f-ming
+        hostPath:
+          path: /home/oai72_su/oai_mp_f_ming
+          type: Directory
+
       dnsPolicy: ClusterFirst
       restartPolicy: Always
       schedulerName: default-scheduler

@@ -13,7 +13,7 @@ nfimage:   # image name either locally present or in a public/private repository
 
   # MING NFAPI
   repository: bmw.ece.ntust.edu.tw/minghong/oai-gnb
-  version: rApp
+  version: latest
 
   pullPolicy: IfNotPresent
 
@@ -51,16 +51,16 @@ multus:
     # if gatway is empty then it will be removed
     #Gateway: "172.21.11.254"
     #routes:
-    hostInterface: "bond0"      # Interface of the host machine on which this pod will be scheduled
+    hostInterface: "eno1"      # Interface of the host machine on which this pod will be scheduled
   ruInterface:            #Only needed if using a ethernet based RU/USRP
     create: true
-    mtu: 9216
+    mtu: 9000
     vlan: 103 #LiteON New 6 LiteON Old, 4
     cPlaneMacAdd: 00:11:22:33:44:66  #vvdn 76:76:64:6e:00:01 #benetel 00:11:22:33:44:67
     uPlaneMacAdd: 00:11:22:33:44:66 #vvdn 76:76:64:6e:00:02 #benetel 00:11:22:33:44:66
     sriovNetworkNamespace: sriov-network-operator
-    sriovResourceNameCplane: pci_sriov_net_fh_cp
-    sriovResourceNameUplane: pci_sriov_net_fh_up
+    sriovResourceNameCplane: openshift.io/fh_sriov_cp_lao
+    sriovResourceNameUplane: openshift.io/fh_sriov_up_lao
 
 ## If you want to change more configuration parameters then you should mount the config file
 # in templates/configmap.yaml
@@ -76,7 +76,7 @@ config:
   #LiteON
   ruCPlaneMacAdd: 48:21:0b:4b:93:8e   # Pegatron RU MAC address
   ruUPlaneMacAdd: 48:21:0b:4b:93:8e   # Pegatron RU MAC address
-  amfhost: "192.168.8.108" # BMW Open5GS
+  amfhost: "192.168.8.26" # BMW Open5GS
   n2IfName: "eth0"    # if multus.n2Interface.create is true then use n2
   n3IfName: "eth0"   #if multus.n3Interface.create is true then use n3 or you can only use 1 interface n2 or eth0
   nfapiIfName: "nfapi"
@@ -84,7 +84,7 @@ config:
   pnfHost: "10.21.8.100"
 
 fhi72:
-  dpdk_iova_mode: "VA"
+  dpdk_iova_mode: "PA"
   file_prefix: "fhi_72"
   T1a_cp_dl:
     min: 285
@@ -107,7 +107,7 @@ fhi72:
 
 ## Debugging section
 start:
-  gnb: true #If false the network function container will run in sleep mode for manually testing
+  gnb: false #If false the network function container will run in sleep mode for manually testing
   tcpdump: false
 
 ##Only for the NF container
@@ -140,30 +140,30 @@ resources:
   define: true
   limits:
     nf:
-      #cpu: 8
-      wr_isolcpus: 8
-      memory: 16Gi
+      cpu: 10
+      wr_isolcpus: 0
+      memory: 32Gi
       hugepages: 20Gi
       sriovCplaneClaim:
-        name: intel.com/pci_sriov_net_fh_cp
+        name: openshift.io/fh_sriov_cp_lao
         quantity: 1
       sriovUplaneClaim:
-        name: intel.com/pci_sriov_net_fh_up
+        name: openshift.io/fh_sriov_up_lao
         quantity: 1
     tcpdump:
       cpu: 100m
       memory: 128Mi
   requests:
     nf:
-      #cpu: 8
-      wr_isolcpus: 8
-      memory: 16Gi
+      cpu: 10
+      wr_isolcpus: 0
+      memory: 32Gi
       hugepages: 20Gi
       sriovCplaneClaim:
-        name: intel.com/pci_sriov_net_fh_cp
+        name: openshift.io/fh_sriov_cp_lao
         quantity: 1
       sriovUplaneClaim:
-        name: intel.com/pci_sriov_net_fh_up
+        name: openshift.io/fh_sriov_up_lao
         quantity: 1
     tcpdump:
       cpu: 100m
@@ -175,9 +175,8 @@ affinity: {}
 
 terminationGracePeriodSeconds: 5
 
-nodeSelector:
-  specialized: "radio"
-  kubernetes.io/hostname: "joule"
+nodeSelector: {}
+nodeName: lavoisier
 
 tolerations:
   - key: "dedicated"
