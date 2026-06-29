@@ -127,10 +127,10 @@ tcpdumpimage:
 ## https://kubernetes.io/docs/concepts/configuration/manage-resources-containers
 ## https://kubernetes.io/docs/concepts/workloads/pods/pod-qos
 resources:
-  define: true
+  define: false
   limits:
     nf:
-      cpu: 5
+      cpu: 4
       wr_isolcpus: 0
       memory: 8Gi
       hugepages: 4Gi

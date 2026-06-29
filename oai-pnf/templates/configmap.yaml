@@ -76,7 +76,8 @@ data:
           iq_width_prach = 9;
         };
         prach_config = {
-          kbar = 0;
+          eAxC_offset = 4;
+          kbar = 4;
         };
       });
     };

@@ -26,7 +26,7 @@ data:
         maxMIMO_layers        = 4;
         pusch_AntennaPorts    = 4;
         do_CSIRS              = 1;
-        do_SRS                = 0;
+        do_SRS                = "none";
         sib1_tda                            = 15;
     
         servingCellConfigCommon = (

@@ -59,7 +59,7 @@ spec:
           - mountPath: /dev/vfio
             name: vfio
           - name: oai-mp-f-ming
-            mountPath: /mnt/oai_mp_f_ming
+            mountPath: /home/oai72_su
           {{- if .Values.persistence.enabled }}
           - name: logs
             mountPath: /var/log/oai
@@ -120,12 +120,19 @@ spec:
             sed -e ${E} $CONF | tee /tmp/du.conf;
             ulimit -l unlimited;
             ip link set dev eth0 mtu 9216;
+            for f in /home/oai72_su/oai_mp_f_ming/dpdk_libs/*.so*; do ln -sf "$f" /usr/local/lib/; done;
+            for f in /home/oai72_su/oai_mp_f_ming/dpdk_libs/dpdk/pmds-21.0/*.so*; do ln -sf "$f" /usr/local/lib/; done;
+            for f in /home/oai72_su/oai_mp_f_ming/openairinterface5g/cmake_targets/ran_build/build/*.so*; do ln -sf "$f" /usr/local/lib/; done;
+            ln -sf /home/oai72_su/oai_mp_f_ming/phy/fhi_lib/lib/build/libxran.so /usr/local/lib/libxran.so;
+            ln -sf /home/oai72_su/oai_mp_f_ming/libconfig.so.11 /usr/local/lib/libconfig.so.11;
+            export DPDK_PMD_PATH=/home/oai72_su/oai_mp_f_ming/dpdk_libs/dpdk/pmds-21.0;
+            ldconfig;
             {{- if .Values.persistence.enabled }}
             LOG_FILE="/var/log/oai/pnf-$(date +%Y%m%d_%H%M%S).log";
             mkdir -p /var/log/oai;
-            exec /opt/oai-gnb/bin/nr-softmodem -O /tmp/du.conf $USE_ADDITIONAL_OPTIONS 2>&1 | tee -a "${LOG_FILE}";
+            exec /home/oai72_su/oai_mp_f_ming/openairinterface5g/cmake_targets/ran_build/build/nr-softmodem -O /tmp/du.conf $USE_ADDITIONAL_OPTIONS 2>&1 | tee -a "${LOG_FILE}";
             {{- else }}
-            exec /opt/oai-gnb/bin/nr-softmodem -O /tmp/du.conf $USE_ADDITIONAL_OPTIONS;
+            exec /home/oai72_su/oai_mp_f_ming/openairinterface5g/cmake_targets/ran_build/build/nr-softmodem -O /tmp/du.conf $USE_ADDITIONAL_OPTIONS;
             {{- end }}
         {{- else}}
         command:
@@ -208,7 +215,7 @@ spec:
           type: Directory
       - name: oai-mp-f-ming
         hostPath:
-          path: /home/oai72_su/oai_mp_f_ming
+          path: /home/oai72_su
           type: Directory
       {{- if .Values.persistence.enabled }}
       - name: logs
