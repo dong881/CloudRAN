@@ -1,0 +1,131 @@
+pipeline {
+    agent {
+        label 'jenkins-agent-00'
+    }
+
+    environment {
+        GIT_SSL_NO_VERIFY = 'true'
+    }
+
+    parameters {
+        string(name: 'GIT_REPO', defaultValue: 'https://github.com/bmw-ece-ntust/openairinterface5g', description: 'Git repository URL')
+        string(name: 'GIT_BRANCH', defaultValue: 'nfapi-DelayManagement-BMW', description: 'Git branch to clone')
+        string(name: 'GIT_CREDENTIAL_ID', defaultValue: 'ming_gh_token', description: 'Git credentials ID (leave empty for public repos)')
+        string(name: 'QUAY_REPO', defaultValue: 'bmw.ece.ntust.edu.tw/minghong', description: 'Container registry')
+        string(name: 'TAG', defaultValue: 'latest', description: 'Image tag')
+        string(name: 'REGISTRY_CREDENTIAL_ID', defaultValue: 'ming_account', description: 'Registry credentials ID')
+        choice(name: 'E2AP_VERSION', choices: ['E2AP_V3', 'E2AP_V2', 'E2AP_V1'], description: 'E2AP version used by OAI RAN and FlexRIC')
+        choice(name: 'KPM_VERSION', choices: ['KPM_V3_00', 'KPM_V2_03'], description: 'E2SM-KPM version used by OAI RAN and FlexRIC')
+    }
+
+    stages {
+        stage('Clone Repository') {
+            options {
+                // 整個 Stage 的超時設定，防止程序無限期卡死
+                timeout(time: 45, unit: 'MINUTES')
+            }
+            steps {
+                script {
+                    // GitSCM 進階參數設定
+                    def gitExtensions = [
+                        // 主專案保持 Shallow Clone 即可，節省時間
+                        [$class: 'CloneOption', depth: 1, noTags: true, shallow: true, timeout: 30],
+                        // 確保切換新 Branch 時，工作區是乾淨的，避免舊程式碼衝突
+                        [$class: 'CleanBeforeCheckout']
+                    ]
+
+                    // 使用 checkout 語法取代 git 語法，以支援更完整的控制
+                    if (params.GIT_CREDENTIAL_ID?.trim()) {
+                        checkout([
+                            $class: 'GitSCM',
+                            branches: [[name: "*/${params.GIT_BRANCH}"]],
+                            extensions: gitExtensions,
+                            userRemoteConfigs: [[
+                                credentialsId: "${params.GIT_CREDENTIAL_ID}", 
+                                url: "${params.GIT_REPO}"
+                            ]]
+                        ])
+                    } else {
+                        checkout([
+                            $class: 'GitSCM',
+                            branches: [[name: "*/${params.GIT_BRANCH}"]],
+                            extensions: gitExtensions,
+                            userRemoteConfigs: [[
+                                url: "${params.GIT_REPO}"
+                            ]]
+                        ])
+                    }
+                    
+                    // 1. 基本的初始化與還原
+                    sh 'git submodule sync --recursive'
+                    sh 'git submodule update --init --recursive --force'
+                    sh 'git submodule foreach --recursive git clean -xfd'
+                    sh 'git submodule foreach --recursive git reset --hard'
+                    
+                }
+            }
+        }
+        
+        stage('Build Base Image') {
+            steps {
+                sh 'podman build --tls-verify=false -t ran-base -f docker/Dockerfile.base.ubuntu .'
+            }
+        }
+
+        stage('Build Build Image') {
+            steps {
+                withEnv([
+                    "E2AP_VERSION=${params.E2AP_VERSION}",
+                    "KPM_VERSION=${params.KPM_VERSION}"
+                ]) {
+                    sh '''
+                        set -eu
+
+                        patched_dockerfile="$(mktemp /tmp/Dockerfile.build.fhi72.ubuntu.XXXXXX)"
+                        trap 'rm -f "$patched_dockerfile"' EXIT
+
+                        awk '
+                            /^FROM ran-base AS ran-build-fhi72$/ {
+                                print
+                                print "ARG E2AP_VERSION=E2AP_V3"
+                                print "ARG KPM_VERSION=KPM_V3_00"
+                                next
+                            }
+                            { print }
+                        ' docker/Dockerfile.build.fhi72.ubuntu > "$patched_dockerfile"
+
+                        podman build --tls-verify=false \
+                            --build-arg E2AP_VERSION="$E2AP_VERSION" \
+                            --build-arg KPM_VERSION="$KPM_VERSION" \
+                            -t ran-build-fhi72 \
+                            -f "$patched_dockerfile" .
+                    '''
+                }
+            }
+        }
+
+        stage('Build gNB Image') {
+            steps {
+                sh 'podman build --tls-verify=false -t oai-gnb -f docker/Dockerfile.gNB.fhi72.ubuntu .'
+            }
+        }
+
+        stage('Push Image') {
+            steps {
+                withCredentials([usernamePassword(
+                    credentialsId: params.REGISTRY_CREDENTIAL_ID,
+                    usernameVariable: 'QUAY_USER',
+                    passwordVariable: 'QUAY_PASS'
+                )]) {
+                    sh """
+                        # Using --password-stdin to securely login
+                        echo "${QUAY_PASS}" | podman login ${params.QUAY_REPO} --username ${QUAY_USER} --password-stdin --tls-verify=false
+                        
+                        podman tag oai-gnb ${params.QUAY_REPO}/oai-gnb:${params.TAG}
+                        podman push --tls-verify=false ${params.QUAY_REPO}/oai-gnb:${params.TAG}
+                    """
+                }
+            }
+        }
+    }
+}
