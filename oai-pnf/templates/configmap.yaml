@@ -38,7 +38,7 @@ data:
       sf_extension                  = 0;
       eNB_instances  = [0];
       ru_thread_core = @RU_CORE@;
-      sl_ahead       = 6;
+      sl_ahead       = 5;
       tr_preference  = "raw_if4p5"; # important: activate FHI7.2
       do_precoding   = 0; # needs to match O-RU configuration
     }
@@ -67,9 +67,9 @@ data:
       ru_addr = ("{{ .Values.config.ruCPlaneMacAdd }}", "{{ .Values.config.ruUPlaneMacAdd }}");
       mtu = {{ .Values.multus.ruInterface.mtu }}; # note: 1500 works as well, with both E and F releases
       fh_config = ({
-        T1a_cp_dl = (285, 470);
+        T1a_cp_dl = (285, 429);
         T1a_cp_ul = (285, 429);
-        T1a_up = (100, 250);
+        T1a_up = (96, 196);
         Ta4 = (110, 180);
         ru_config = {
           iq_width = 9;
