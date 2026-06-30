@@ -1,0 +1,1162 @@
+L1s = (
+{
+  num_cc = 1;
+  tr_n_preference  = "nfapi";
+  remote_n_address = "10.21.8.99"; // vnf addr
+  local_n_address  = "10.21.8.100"; // pnf addr
+  local_n_portc    = 50000; // pnf p5 port [!]
+  remote_n_portc   = 50005; // vnf p5 port
+  local_n_portd    = 50010; // pnf p7 port
+  remote_n_portd   = 50011; // vnf p7 port
+  prach_dtx_threshold = 130;
+  pucch0_dtx_threshold = 80;
+  pusch_dtx_threshold = 10;
+  tx_amp_backoff_dB = 20; # needs to match O-RU configuration
+  L1_rx_thread_core = 0;
+  L1_tx_thread_core = 1; # relevant after merge of l1_tx_thread
+  phase_compensation = 0; # needs to match O-RU configuration
+}
+);
+
+RUs = (
+{
+  local_rf       = "no";
+  nb_tx          = 4;
+  nb_rx          = 4;
+  att_tx         = 0;
+  att_rx         = 0;
+  bands          = [78];
+  max_pdschReferenceSignalPower = -27;
+  max_rxgain                    = 75;
+  sf_extension                  = 0;
+  eNB_instances  = [0];
+  ru_thread_core = 2;
+  sl_ahead       = 6;
+  tr_preference  = "raw_if4p5"; # important: activate FHI7.2
+  do_precoding   = 0; # needs to match O-RU configuration
+}
+);
+
+log_config :
+{
+  global_log_level = "info";
+  hw_log_level     = "info";
+  phy_log_level    = "info";
+  mac_log_level    = "info";
+  rlc_log_level    = "info";
+  pdcp_log_level   = "info";
+  rrc_log_level    = "info";
+  ngap_log_level   = "info";
+  f1ap_log_level   = "info";
+};
+
+fhi_72 = {
+  dpdk_devices = ("0000:43:0a.0", "0000:43:0a.1"); # one VF can be used as well
+  dpdk_iova_mode = "PA";
+  file_prefix = "fhi_72";
+  system_core = 3;
+  io_core = 4;
+  worker_cores = (5);
+  ru_addr = ("48:21:0b:4b:93:8e", "48:21:0b:4b:93:8e");
+  mtu = 9000; # note: 1500 works as well, with both E and F releases
+  fh_config = ({
+    T1a_cp_dl = (285, 470);
+    T1a_cp_ul = (285, 429);
+    T1a_up = (100, 250);
+    Ta4 = (110, 180);
+    ru_config = {
+      iq_width = 9;
+      iq_width_prach = 9;
+    };
+    prach_config = {
+      kbar = 0;
+    };
+  });
+};
+CMDLINE: "/opt/oai-gnb/bin/nr-softmodem" "-O" "/tmp/du.conf" "--nfapi" "PNF" "--log_config.global_log_options" "level,nocolor,time" 
+397112.272287 [UTIL]   I running in SA mode (no --phy-test, --do-ra, --nsa option present)
+397113.272617 [OPT]    I OPT disabled
+397113.272635 [HW]     I Version: Branch: HEAD Abrev. Hash: 8fc8c91f Date: Sun Jun 28 23:58:04 2026 +0800
+397113.272650 [GNB_APP] I Initialized RAN Context: RC.nb_nr_inst = 0, RC.nb_nr_macrlc_inst = 0, RC.nb_nr_L1_inst = 1, RC.nb_RU = 1, RC.nb_nr_CC[0] = 1
+397113.272659 [NR_PHY] I Initializing gNB RAN context: RC.nb_nr_L1_inst = 1 
+397113.273201 [NR_PHY] I Registered with MAC interface module (0x555d3c4c46e0)
+397113.273215 [NR_PHY] I Initializing NR L1: RC.nb_nr_L1_inst = 1
+397113.273255 [NR_PHY] I thread cores for L1_RX 0 L1_TX 1
+397113.273268 [NR_PHY] I TX_AMP = 3276 (-20 dBFS)
+[CONFIG] function config_libconfig_init returned 0
+configure_nr_nfapi_pnf() PNF
+
+
+
+
+
+configure_nr_nfapi_pnf() VNF:10.21.8.99:50005 PNF_PHY[addr:10.21.8.100 UDP:tx_addr:10.21.8.99:50011 rx:50010]
+397113.273284 [I] 4112220288: nfapi_trace_init: NFAPI_TRACE_LEVEL='info'
+397113.273297 [I] 4112220288: configure_nr_nfapi_pnf: [PNF] Creating PNF NFAPI start thread configure_nr_nfapi_pnf
+397113.273303 [I] 4112220288: configure_nr_nfapi_pnf: [PNF] Creating PNF NFAPI start thread configure_nr_nfapi_pnf
+397113.275828 [I] 4109760192: pnf_start_p5_thread: [PNF] IN PNF NFAPI start thread pnf_start_p5_thread
+397113.275851 [I] 4109760192: pnf_start_p5_thread: pnf_start_p5_thread
+397113.275853 [I] 4109760192: pnf_connect_socket: Starting P5 PNF connection to VNF at 10.21.8.99:50005
+397113.275973 [N] 4109760192: pnf_connect_socket: PNF Setting the SCTP_INITMSG
+397113.275978 [I] 4109760192: pnf_connect_socket: P5 socket created...
+397113.276071 [E] 4109760192: pnf_connect_socket: After connect (address:10.21.8.99 port:50005) errno: 111
+397113.276893 [UTIL]   I threadCreate() for time source realtime: creating thread with affinity ffffffff, priority 2
+397113.279417 [UTIL]   I time manager configuration: [time source: reatime] [mode: standalone] [server IP: 127.0.0.1} [server port: 7374] (server IP/port not used)
+397115.276097 [I] 4109760192: pnf_connect_socket: Starting P5 PNF connection to VNF at 10.21.8.99:50005
+397115.276131 [N] 4109760192: pnf_connect_socket: PNF Setting the SCTP_INITMSG
+397115.276136 [I] 4109760192: pnf_connect_socket: P5 socket created...
+397115.276206 [E] 4109760192: pnf_connect_socket: After connect (address:10.21.8.99 port:50005) errno: 111
+397117.276229 [I] 4109760192: pnf_connect_socket: Starting P5 PNF connection to VNF at 10.21.8.99:50005
+397117.276243 [N] 4109760192: pnf_connect_socket: PNF Setting the SCTP_INITMSG
+397117.276247 [I] 4109760192: pnf_connect_socket: P5 socket created...
+397117.276277 [E] 4109760192: pnf_connect_socket: After connect (address:10.21.8.99 port:50005) errno: 111
+397119.276295 [I] 4109760192: pnf_connect_socket: Starting P5 PNF connection to VNF at 10.21.8.99:50005
+397119.276306 [N] 4109760192: pnf_connect_socket: PNF Setting the SCTP_INITMSG
+397119.276309 [I] 4109760192: pnf_connect_socket: P5 socket created...
+397119.276332 [E] 4109760192: pnf_connect_socket: After connect (address:10.21.8.99 port:50005) errno: 111
+397121.276348 [I] 4109760192: pnf_connect_socket: Starting P5 PNF connection to VNF at 10.21.8.99:50005
+397121.276363 [N] 4109760192: pnf_connect_socket: PNF Setting the SCTP_INITMSG
+397121.276366 [I] 4109760192: pnf_connect_socket: P5 socket created...
+397121.276389 [E] 4109760192: pnf_connect_socket: After connect (address:10.21.8.99 port:50005) errno: 111
+397123.276405 [I] 4109760192: pnf_connect_socket: Starting P5 PNF connection to VNF at 10.21.8.99:50005
+397123.276416 [N] 4109760192: pnf_connect_socket: PNF Setting the SCTP_INITMSG
+397123.276419 [I] 4109760192: pnf_connect_socket: P5 socket created...
+397123.276444 [E] 4109760192: pnf_connect_socket: After connect (address:10.21.8.99 port:50005) errno: 111
+397125.276459 [I] 4109760192: pnf_connect_socket: Starting P5 PNF connection to VNF at 10.21.8.99:50005
+397125.276468 [N] 4109760192: pnf_connect_socket: PNF Setting the SCTP_INITMSG
+397125.276470 [I] 4109760192: pnf_connect_socket: P5 socket created...
+397125.276493 [E] 4109760192: pnf_connect_socket: After connect (address:10.21.8.99 port:50005) errno: 111
+397127.276508 [I] 4109760192: pnf_connect_socket: Starting P5 PNF connection to VNF at 10.21.8.99:50005
+397127.276516 [N] 4109760192: pnf_connect_socket: PNF Setting the SCTP_INITMSG
+397127.276519 [I] 4109760192: pnf_connect_socket: P5 socket created...
+397127.276538 [E] 4109760192: pnf_connect_socket: After connect (address:10.21.8.99 port:50005) errno: 111
+397129.276552 [I] 4109760192: pnf_connect_socket: Starting P5 PNF connection to VNF at 10.21.8.99:50005
+397129.276562 [N] 4109760192: pnf_connect_socket: PNF Setting the SCTP_INITMSG
+397129.276565 [I] 4109760192: pnf_connect_socket: P5 socket created...
+397129.276586 [E] 4109760192: pnf_connect_socket: After connect (address:10.21.8.99 port:50005) errno: 111
+397131.276601 [I] 4109760192: pnf_connect_socket: Starting P5 PNF connection to VNF at 10.21.8.99:50005
+397131.276612 [N] 4109760192: pnf_connect_socket: PNF Setting the SCTP_INITMSG
+397131.276615 [I] 4109760192: pnf_connect_socket: P5 socket created...
+397131.276638 [E] 4109760192: pnf_connect_socket: After connect (address:10.21.8.99 port:50005) errno: 111
+397133.276654 [I] 4109760192: pnf_connect_socket: Starting P5 PNF connection to VNF at 10.21.8.99:50005
+397133.276663 [N] 4109760192: pnf_connect_socket: PNF Setting the SCTP_INITMSG
+397133.276666 [I] 4109760192: pnf_connect_socket: P5 socket created...
+397133.276686 [E] 4109760192: pnf_connect_socket: After connect (address:10.21.8.99 port:50005) errno: 111
+397135.276702 [I] 4109760192: pnf_connect_socket: Starting P5 PNF connection to VNF at 10.21.8.99:50005
+397135.276710 [N] 4109760192: pnf_connect_socket: PNF Setting the SCTP_INITMSG
+397135.276712 [I] 4109760192: pnf_connect_socket: P5 socket created...
+397135.276732 [E] 4109760192: pnf_connect_socket: After connect (address:10.21.8.99 port:50005) errno: 111
+397137.276747 [I] 4109760192: pnf_connect_socket: Starting P5 PNF connection to VNF at 10.21.8.99:50005
+397137.276757 [N] 4109760192: pnf_connect_socket: PNF Setting the SCTP_INITMSG
+397137.276760 [I] 4109760192: pnf_connect_socket: P5 socket created...
+397137.276781 [E] 4109760192: pnf_connect_socket: After connect (address:10.21.8.99 port:50005) errno: 111
+397139.276796 [I] 4109760192: pnf_connect_socket: Starting P5 PNF connection to VNF at 10.21.8.99:50005
+397139.276804 [N] 4109760192: pnf_connect_socket: PNF Setting the SCTP_INITMSG
+397139.276806 [I] 4109760192: pnf_connect_socket: P5 socket created...
+397139.276825 [E] 4109760192: pnf_connect_socket: After connect (address:10.21.8.99 port:50005) errno: 111
+397141.276840 [I] 4109760192: pnf_connect_socket: Starting P5 PNF connection to VNF at 10.21.8.99:50005
+397141.276853 [N] 4109760192: pnf_connect_socket: PNF Setting the SCTP_INITMSG
+397141.276856 [I] 4109760192: pnf_connect_socket: P5 socket created...
+397141.276881 [E] 4109760192: pnf_connect_socket: After connect (address:10.21.8.99 port:50005) errno: 111
+397143.276898 [I] 4109760192: pnf_connect_socket: Starting P5 PNF connection to VNF at 10.21.8.99:50005
+397143.276909 [N] 4109760192: pnf_connect_socket: PNF Setting the SCTP_INITMSG
+397143.276911 [I] 4109760192: pnf_connect_socket: P5 socket created...
+397143.276935 [E] 4109760192: pnf_connect_socket: After connect (address:10.21.8.99 port:50005) errno: 111
+397145.276952 [I] 4109760192: pnf_connect_socket: Starting P5 PNF connection to VNF at 10.21.8.99:50005
+397145.276962 [N] 4109760192: pnf_connect_socket: PNF Setting the SCTP_INITMSG
+397145.276964 [I] 4109760192: pnf_connect_socket: P5 socket created...
+397145.276982 [E] 4109760192: pnf_connect_socket: After connect (address:10.21.8.99 port:50005) errno: 111
+397147.276998 [I] 4109760192: pnf_connect_socket: Starting P5 PNF connection to VNF at 10.21.8.99:50005
+397147.277012 [N] 4109760192: pnf_connect_socket: PNF Setting the SCTP_INITMSG
+397147.277014 [I] 4109760192: pnf_connect_socket: P5 socket created...
+397147.277034 [E] 4109760192: pnf_connect_socket: After connect (address:10.21.8.99 port:50005) errno: 111
+397149.277049 [I] 4109760192: pnf_connect_socket: Starting P5 PNF connection to VNF at 10.21.8.99:50005
+397149.277057 [N] 4109760192: pnf_connect_socket: PNF Setting the SCTP_INITMSG
+397149.277059 [I] 4109760192: pnf_connect_socket: P5 socket created...
+397149.277076 [E] 4109760192: pnf_connect_socket: After connect (address:10.21.8.99 port:50005) errno: 111
+397151.277092 [I] 4109760192: pnf_connect_socket: Starting P5 PNF connection to VNF at 10.21.8.99:50005
+397151.277100 [N] 4109760192: pnf_connect_socket: PNF Setting the SCTP_INITMSG
+397151.277103 [I] 4109760192: pnf_connect_socket: P5 socket created...
+397151.277123 [E] 4109760192: pnf_connect_socket: After connect (address:10.21.8.99 port:50005) errno: 111
+397153.277139 [I] 4109760192: pnf_connect_socket: Starting P5 PNF connection to VNF at 10.21.8.99:50005
+397153.277149 [N] 4109760192: pnf_connect_socket: PNF Setting the SCTP_INITMSG
+397153.277152 [I] 4109760192: pnf_connect_socket: P5 socket created...
+397153.277177 [E] 4109760192: pnf_connect_socket: After connect (address:10.21.8.99 port:50005) errno: 111
+397155.277192 [I] 4109760192: pnf_connect_socket: Starting P5 PNF connection to VNF at 10.21.8.99:50005
+397155.277202 [N] 4109760192: pnf_connect_socket: PNF Setting the SCTP_INITMSG
+397155.277205 [I] 4109760192: pnf_connect_socket: P5 socket created...
+397155.277224 [E] 4109760192: pnf_connect_socket: After connect (address:10.21.8.99 port:50005) errno: 111
+397157.277239 [I] 4109760192: pnf_connect_socket: Starting P5 PNF connection to VNF at 10.21.8.99:50005
+397157.277248 [N] 4109760192: pnf_connect_socket: PNF Setting the SCTP_INITMSG
+397157.277250 [I] 4109760192: pnf_connect_socket: P5 socket created...
+397157.277270 [E] 4109760192: pnf_connect_socket: After connect (address:10.21.8.99 port:50005) errno: 111
+397159.277286 [I] 4109760192: pnf_connect_socket: Starting P5 PNF connection to VNF at 10.21.8.99:50005
+397159.277294 [N] 4109760192: pnf_connect_socket: PNF Setting the SCTP_INITMSG
+397159.277297 [I] 4109760192: pnf_connect_socket: P5 socket created...
+397159.277317 [E] 4109760192: pnf_connect_socket: After connect (address:10.21.8.99 port:50005) errno: 111
+397161.277333 [I] 4109760192: pnf_connect_socket: Starting P5 PNF connection to VNF at 10.21.8.99:50005
+397161.277345 [N] 4109760192: pnf_connect_socket: PNF Setting the SCTP_INITMSG
+397161.277348 [I] 4109760192: pnf_connect_socket: P5 socket created...
+397164.279275 [I] 4109760192: pnf_connect_socket: connect succeeded...
+397164.279291 [N] 4109760192: pnf_connect_socket: After connect loop
+397164.279296 [I] 4109760192: pnf_connect_socket: Association ID = 1414
+397164.279297 [I] 4109760192: pnf_connect_socket: Receiver window size = 33554432
+397164.279298 [I] 4109760192: pnf_connect_socket: In Streams = 5
+397164.279299 [I] 4109760192: pnf_connect_socket: Out Streams = 5
+397164.279299 [N] 4109760192: pnf_connect_socket: Socket CONNECTED
+397164.279378 [I] 4109760192: pnf_nr_handle_pnf_param_request: PNF_PARAM.request received
+[PNF] pnf param request
+397164.279458 [I] 4109760192: pnf_nr_handle_pnf_config_request: PNF_CONFIG.request received
+[PNF] pnf config request
+[PNF] pnf config request assigned phy_id 1 to phy_config_index 0
+[PNF] Sent pnf_config_resp
+397164.279512 [I] 4109760192: pnf_nr_handle_pnf_start_request: PNF_START.request Received
+Received NFAPI_PNF_START_REQUEST
+[PNF] Sent NFAPI_PNF_START_RESP
+397164.288281 [I] 4109760192: pnf_nr_handle_param_request: PARAM.request received
+[PNF] Received NFAPI_PARAM_REQUEST phy_id:1
+TAG value :2
+RUNNING pack_param_response
+[PNF] Sent NFAPI_PNF_PARAM_RESPONSE phy_id:1 number_of_tlvs:62
+397164.288398 [I] 4109760192: pnf_nr_handle_config_request: CONFIG.request received
+[PNF] vnf p7 0.1.4.0:50011
+[PNF] Received NFAPI_CONFIG_REQ phy_id:1
+
+Timing window tag: 286
+Phy_info:Timing window:6500 NFAPI_CONFIG:timing_window:6500
+timing info mode:1
+timing info period provided value:1
+397164.288439 [E] 4109760192: nr_config_request: nr_config_request() NFAPI_NR_CONFIG_DL_BANDWIDTH_TAG N_RB_DL:100
+[PNF] CONFIG_REQUEST[num_tlv:138] TLVs processed:10
+[PNF] Simulating PHY CONFIG
+397164.288445 [E] 4109760192: copy_vendor_extension_value: Unknown Vendor Extension tag 39744
+397164.288453 [PHY]    I DL frequency 3750000000 Hz, UL frequency 3750000000 Hz: uldl offset 0 Hz
+397164.288456 [PHY]    I Initializing frame parms for mu 1, N_RB 273, Ncp 0
+397164.288458 [PHY]    I Init: N_RB_DL 273, first_carrier_offset 2458, nb_prefix_samples 288,nb_prefix_samples0 352, ofdm_symbol_size 4096
+397164.288824 [PHY]    I fp->scs=30000
+397164.288829 [PHY]    I fp->ofdm_symbol_size=4096
+397164.288830 [PHY]    I fp->nb_prefix_samples0=352
+397164.288832 [PHY]    I fp->nb_prefix_samples=288
+397164.288833 [PHY]    I fp->slots_per_subframe=2
+397164.288834 [PHY]    I fp->samples_per_subframe_wCP=114688
+397164.288835 [PHY]    I fp->samples_per_frame_wCP=1146880
+397164.288836 [PHY]    I fp->samples_per_subframe=122880
+397164.288836 [PHY]    I fp->samples_per_frame=1228800
+397164.288837 [PHY]    I fp->dl_CarrierFreq=3750000000
+397164.288838 [PHY]    I fp->ul_CarrierFreq=3750000000
+397164.288839 [PHY]    I fp->Nid_cell=0
+397164.288840 [PHY]    I fp->first_carrier_offset=2458
+397164.288841 [PHY]    I fp->ssb_start_subcarrier=0
+397164.288842 [PHY]    I fp->Ncp=0
+397164.288843 [PHY]    I fp->N_RB_DL=273
+397164.288844 [PHY]    I fp->numerology_index=1
+397164.288845 [PHY]    I fp->ofdm_offset_divisor=8
+397164.288846 [PHY]    I fp->threequarter_fs=0
+397164.288846 [PHY]    I fp->sl_CarrierFreq=0
+397164.288847 [PHY]    I fp->N_RB_SL=0
+[PNF] 1 vnf p7 10.21.8.99:50011 timing 6500 1 1
+[PNF] Sent NFAPI_PNF_CONFIG_RESPONSE phy_id:1
+397164.288897 [I] 4109760192: pnf_nr_handle_start_request: pnf_nr_handle_start_request() START.request received state:2
+397164.337361 [PHY]    I number of L1 instances 1, number of RU 1, number of CPU cores 32
+397164.337544 [PHY]    I Initialized RU proc 0 (NGFI_RAU_IF4p5,synch_to_ext_device),
+397164.337557 [UTIL]   I threadCreate() for ru_thread: creating thread with affinity 2, priority 97
+397164.340132 [PHY]    I Starting RU 0 (NGFI_RAU_IF4p5,synch_to_ext_device) on cpu 0
+397164.340136 [PHY]    I Initializing frame parms for mu 1, N_RB 273, Ncp 0
+397164.340138 [PHY]    I Init: N_RB_DL 273, first_carrier_offset 2458, nb_prefix_samples 288,nb_prefix_samples0 352, ofdm_symbol_size 4096
+397164.340140 [PHY]    I fp->scs=30000
+397164.340141 [PHY]    I fp->ofdm_symbol_size=4096
+397164.340142 [PHY]    I fp->nb_prefix_samples0=352
+397164.340142 [PHY]    I fp->nb_prefix_samples=288
+397164.340143 [PHY]    I fp->slots_per_subframe=2
+397164.340144 [PHY]    I fp->samples_per_subframe_wCP=114688
+397164.340144 [PHY]    I fp->samples_per_frame_wCP=1146880
+397164.340145 [PHY]    I fp->samples_per_subframe=122880
+397164.340146 [PHY]    I fp->samples_per_frame=1228800
+397164.340147 [PHY]    I fp->dl_CarrierFreq=3750000000
+397164.340147 [PHY]    I fp->ul_CarrierFreq=3750000000
+397164.340148 [PHY]    I fp->Nid_cell=0
+397164.340149 [PHY]    I fp->first_carrier_offset=2458
+397164.340149 [PHY]    I fp->ssb_start_subcarrier=0
+397164.340150 [PHY]    I fp->Ncp=0
+397164.340151 [PHY]    I fp->N_RB_DL=273
+397164.340151 [PHY]    I fp->numerology_index=1
+397164.340152 [PHY]    I fp->ofdm_offset_divisor=8
+397164.340153 [PHY]    I fp->threequarter_fs=0
+397164.340153 [PHY]    I fp->sl_CarrierFreq=0
+397164.340154 [PHY]    I fp->N_RB_SL=0
+397164.340155 [NR_PHY] I nb_tx_streams 4, nb_rx_streams 4
+397164.344790 [PHY]    I Setting RF config for N_RB 273, NB_RX 4, NB_TX 4
+397164.344793 [PHY]    I tune_offset 0 Hz, sample_rate 122880000 Hz
+397164.344801 [PHY]    I Channel 0: setting tx_gain offset 0, tx_freq 3750000000 Hz
+397164.344802 [PHY]    I Channel 1: setting tx_gain offset 0, tx_freq 3750000000 Hz
+397164.344803 [PHY]    I Channel 2: setting tx_gain offset 0, tx_freq 3750000000 Hz
+397164.344804 [PHY]    I Channel 3: setting tx_gain offset 0, tx_freq 3750000000 Hz
+397164.344805 [PHY]    I Channel 0: setting rx_gain offset 0, rx_freq 3750000000 Hz
+397164.344806 [PHY]    I Channel 1: setting rx_gain offset 0, rx_freq 3750000000 Hz
+397164.344807 [PHY]    I Channel 2: setting rx_gain offset 0, rx_freq 3750000000 Hz
+397164.344808 [PHY]    I Channel 3: setting rx_gain offset 0, rx_freq 3750000000 Hz
+397164.344811 [PHY]    I starting transport
+[PNF] Received NFAPI_START_REQ phy_id:1
+E2 agent is DISABLED (for activation, define .e2_agent.{near_ric_ip_addr,sm_dir} parameters)
+[PNF] P7 remote:10.21.8.99:50011 local:10.21.8.100:50010
+subframe_buffer_size configured using phy_info->timing_window:6500
+397164.346073 [I] 4109760192: nr_start_request: [PNF] Creating P7 thread nr_start_request
+397164.346081 [UTIL]   I threadCreate() for pnf_p7_thread: creating thread with affinity ffffffff, priority 50
+397164.357620 [I] 3834595008: pnf_nr_p7_thread_start: [NR_PNF] NR P7 THREAD pnf_nr_p7_thread_start
+397164.357626 [I] 3834595008: nfapi_nr_pnf_p7_start: nfapi_nr_pnf_p7_start
+397164.357648 [I] 4109760192: nr_start_request: [PNF] Calling l1_north_init_eNB() nr_start_request
+397164.357651 [I] 4109760192: nr_start_request: [PNF] HACK - Set p7_config global ready for subframe indnr_start_request
+397164.358873 [I] 3834595008: pnf_nr_p7_message_pump: PNF P7 socket created (80)...
+xran_lib_compander_for_isa: 0
+397164.358892 [I] 3834595008: pnf_nr_p7_message_pump: PNF P7 binding 80 too 10.21.8.100:50010
+397164.358899 [I] 3834595008: pnf_nr_p7_message_pump: PNF P7 bind succeeded...
+397164.359015 [PHY]    A Initializing XRAN layer as O-DU
+397164.359060 [HW]     I Initializing O-RAN 7.2 FH interface through xran library (compiled against headers of oran_k_release_v1.1)
+EAL: Detected CPU lcores: 32
+EAL: Detected NUMA nodes: 1
+EAL: Auto-detected process type: PRIMARY
+EAL: Detected shared linkage of DPDK
+EAL: Multi-process socket /var/run/dpdk/fhi_72/mp_socket
+EAL: Selected IOVA mode 'PA'
+EAL: VFIO support initialized
+EAL: Using IOMMU type 1 (Type 1)
+xran_fh_init:
+  io_cfg:
+    id 0 (O-DU)
+    num_vfs 2
+    num_rxq 1
+    dpdk_dev [0000:43:0a.0, 0000:43:0a.1, (null), (null), (null), (null), (null), (null), (null), (null), (null), (null), (null), (null), (null), (null)]
+    bbdev_dev (null)
+    bbdev_mode -1
+    dpdkIoVaMode 0
+    dpdkMemorySize 8192
+    core 4
+    system_core 3
+    pkt_proc_core 0000000000000020
+    pkt_proc_core_64_127 0000000000000000
+    pkt_aux_core 0
+    timing_core 4
+    port (filled within xran library)
+    io_sleep 0
+    nEthLinePerPort 1
+    nEthLineSpeed 10
+    one_vf_cu_plane 0
+    eowd_cmn[0]:
+      initiator_en 0
+      numberOfSamples 0
+      filterType 0
+      responseTo 0
+      measVf 0
+      measState 0
+      measId 0
+      measMethod 0
+      owdm_enable 0
+      owdm_PlLength 0
+eowd_port (filled within xran library)
+    bbu_offload 0
+  eAxCId_conf:
+    mask_cuPortId 0xf000
+    mask_bandSectorId 0x0f00
+    mask_ccId 0x00f0
+    mask_ruPortId 0x000f
+    bit_cuPortId 0
+    bit_bandSectorId 0
+    bit_ccId 0
+    bit_ruPortId 0
+  xran_ports 1
+  dpdkBasebandFecMode 0
+  dpdkBasebandDevice (null)
+  filePrefix fhi_72
+  mtu 9000
+  p_o_du_addr (null)
+  p_o_ru_addr [48:21:0B:4B:93:8E, 48:21:0B:4B:93:8E]
+  totalBfWeights 0
+  mlogxranenable 0
+  dlCpProcBurst 0
+'DPDK 24.11.4' (XRAN_N_FE_BUF_LEN=10)
+PF Eth line speed 10G
+PF Eth lines per O-xU port 1
+RX HW queues per O-xU Eth line 1 
+node 0
+total cores 32 c_mask 0x00000000000000038 core 4 [id] system_core 3 [id] pkt_proc_core 0x00000000000000020 [mask] pkt_aux_core 0 [id] timing_core 4 [id]
+xran_ethdi_init_dpdk: Calling rte_eal_init:fhi_72 -c 0x00000000000000038 --main-lcore=3 -n2 --iova-mode=pa --socket-mem=8192,0 --socket-limit=8192,0 --proc-type=auto --file-prefix fhi_72 -a0000:00:00.0       
+RU0 MTU 9000
+xran_init_mbuf_pool: socket 0
+initializing port 0 for TX, drv=net_iavf
+set DEV_TX_OFFLOAD_MBUF_FAST_FREE
+Port 0 MAC: 00 11 22 33 44 66
+Port 0: nb_rxd 4096 nb_txd 4096
+[0] mp_rx__p_0_q_0 num blocks 65535
+[0] mempool_small__0
+IAVF_DRIVER: iavf_set_rx_function(): request RXDID[1] in Queue[0] is legacy, set rx_pkt_burst as legacy for all queues
+
+Checking link status portid [0]   ... done
+Port 0 Link Up - speed 10000 Mbps - full-duplex
+initializing port 1 for TX, drv=net_iavf
+set DEV_TX_OFFLOAD_MBUF_FAST_FREE
+Port 1 MAC: 00 11 22 33 44 66
+Port 1: nb_rxd 4096 nb_txd 4096
+[1] mp_rx__p_1_q_0 num blocks 65535
+[1] mempool_small__1
+IAVF_DRIVER: iavf_set_rx_function(): request RXDID[1] in Queue[0] is legacy, set rx_pkt_burst as legacy for all queues
+Created ring tx_ring_cp_1_1 on core 4
+Created ring rx_ring_cp_1_0_1 on core 4
+
+Checking link status portid [1]   ... done
+Port 1 Link Up - speed 10000 Mbps - full-duplex
+[ 0] vf  0 local  SRC MAC: 00 11 22 33 44 66
+[ 0] vf  0 remote DST MAC: 48 21 0b 4b 93 8e
+[ 0] vf  1 local  SRC MAC: 00 11 22 33 44 66
+[ 0] vf  1 remote DST MAC: 48 21 0b 4b 93 8e
+created dl_gen_ring_up_0_0 on core 4
+RU0 handle = 0x33ea69700
+xran_fh_config:
+  dpdk_port 0
+  sector_id 0
+  nCC 1
+  neAxc 4
+  neAxcUl 4
+  nAntElmTRx 0
+  nDLAbsFrePointA 0
+  nULAbsFrePointA 0
+  nDLCenterFreqARFCN 0
+  nULCenterFreqARFCN 0
+  ttiCb (nil)
+  ttiCbParam (nil)
+  perMu:
+    nDLBandwidth 0
+    nULBandwidth 0
+    prach_config:
+       nPrachConfIdx 159
+       nPrachSubcSpacing 1
+       nPrachZeroCorrConf 0
+       nPrachRestrictSet 0
+       nPrachRootSeqIdx 0
+       nPrachFreqStart 22
+       nPrachFreqOffset -2748
+       nPrachFilterIdx 0
+       startSymId 0
+       lastSymId 0
+       startPrbc 0
+       numPrbc 0
+       timeOffset 0
+       freqOffset 0
+       prachEaxcOffset 4
+       nprachformat 0
+       periodicity 0
+       startTime 0
+       suboffset 0
+       numSubCarriers 0
+       nRep 0
+    nPrachConfIdxLTE 0
+    freqOffset 0
+    nDLFftSize 12
+    nULFftSize 12
+    eaxcOffset 0
+    nDLRBs 273
+    nULRBs 273
+    Tadv_cp_dl 0
+    T2a_min_cp_dl 0
+    T2a_max_cp_dl 0
+    T2a_min_cp_ul 0
+    T2a_max_cp_ul 0
+    T2a_min_up 0
+    T2a_max_up 0
+    Ta3_min 0
+    Ta3_max 0
+    T1a_min_cp_dl 285
+    T1a_max_cp_dl 470
+    T1a_min_cp_ul 285
+    T1a_max_cp_ul 429
+    T1a_min_up 100
+    T1a_max_up 250
+    Ta4_min 110
+    Ta4_max 180
+    prachEnable 1
+    prachConfigIndex 159
+    prachConfigIndexLTE 0
+    nbIotUlScs 0
+    adv_tx_time 0
+  enableCP 1
+  srsEnable 0
+  puschMaskEnable 0
+  puschMaskSlot 0
+  debugStop 0
+  debugStopCount 0
+  DynamicSectionEna 0
+  GPS_Alpha 0
+  GPS_Beta 0
+  srsEnableCp 0
+  SrsDelaySym 0
+  srs_config:
+    symbMask 0000
+    srsEaxcOffset 0
+  frame_conf:
+    nFrameDuplexType TDD
+    nTddPeriod 5
+    sSlotConfig[0]: DDDDDDDDDDDDDD
+    sSlotConfig[1]: DDDDDDDDDDDDDD
+    sSlotConfig[2]: DDDDDDDDDDDDDD
+    sSlotConfig[3]: DDDDDDGGGGUUUU
+    sSlotConfig[4]: UUUUUUUUUUUUUU
+  ru_config:
+    xranTech NR
+    xranCat A
+    xranCompHdrType static
+    iqWidth 9
+    compMeth 1
+    iqWidth_PRACH 9
+    compMeth_PRACH 1
+    fftSize[mu_number] 8
+    byteOrder network/BE
+    iqOrder I_Q
+    xran_max_frame 0
+  bbdev_enc (nil)
+  bbdev_dec (nil)
+  tx_cp_eAxC2Vf 0x7f2fe6403340
+  tx_up_eAxC2Vf 0x7f2fe6405140
+  rx_cp_eAxC2Vf 0x7f2fe6406f40
+  rx_up_eAxC2Vf 0x7f2fe6408d40
+  log_level 1
+  max_sections_per_slot 0
+  max_sections_per_symbol 0
+  RunSlotPrbMapBySymbolEnable 0
+  dssEnable 0
+  dssPeriod 0
+  technology[XRAN_MAX_DSS_PERIODICITY] (not filled as DSS disabled)
+  numMUs 1
+  mu_number[0] 1
+  nNumerology[0] 1
+RU0 Opening...  5G NR Category A
+xRAN open PRACH config: Numerology 1 ConfIdx 159, preambleFmrt 10 startsymb 0, numSymbol 12, occassionsInPrachSlot 1
+PRACH: x 1 y[0] 0, y[1] 0 prach slot: 9 ..
+PRACH start symbol 0 lastsymbol 11
+xran_init_vfs_mapping: p 0 vf 0
+xran_init_vfs_mapping: p 0 vf 1
+xran_open: interval_us=500, interval_us_local=500
+RU0 has higher numerology(1) than current(0). Updating..
+Configuring RU0 CC0
+bbu_offload 0
+RU0 mu1, delay_cp_dl_max=30, sym_cp_dl_max=1, max_dl_offset_sym=13
+         delay_cp_dl_min=215, sym_cp_dl_min=5, min_dl_offset_sym=9
+         delay_cp_ul=71,     sym_cp_ul=2,     ul_offset_sym=12
+RU0 mu1: Start C-plane DL from 30 us after TTI  [trigger on sym 1] to 215 us after TTI [trigger on sym 5]
+RU0 mu1, Start C-plane UL 71 us after TTI  [trigger on sym 2]
+RU0 mu1, Start U-plane DL 250 us before OTA [offset  in sym -7]
+RU0 mu1, Start U-plane UL 180 us OTA        [offset  in sym 6]
+RU0 mu1, C-plane to U-plane delay 220 us after TTI
+Start Sym timer 71428 ns
+RU0 mu=1, created DL CP callback for symbol 1
+RU0 mu=1, created DL CP callback for symbol 2
+RU0 mu=1, created DL CP callback for symbol 3
+RU0 mu=1, created DL CP callback for symbol 4
+RU0 mu=1, created DL CP callback for symbol 5
+Start U-plane static SRS 180 us OTA        [offset  in sym 6]
+XRAN Open RU0 [1:00000001]
+Initialize ORAN port instance 0 (1) sector 0
+xran_sector_get_instances() o_xu_id 0 xran_handle397167.146672 [HW]     I [RAU] has loaded ETHERNET trasport protocol.
+397167.146704 [PHY]    I RU 0: manually set CPU affinity to CPU 2
+397167.146714 [PHY]    I Starting IF interface for RU 0, nb_rx 4
+397168.152786 [PHY]    I RU 0 Setting N_TA_offset to 1600 samples (UL Freq 3700860, N_RB 273, mu 1)
+397168.152795 [PHY]    I Signaling main thread that RU 0 is ready, sl_ahead 6
+397169.357662 [PHY]    I L1 configured without analog beamforming
+397169.968738 [PHY]    I Attaching RU 0 antenna 0 to gNB antenna 0
+397169.968752 [PHY]    I Attaching RU 0 antenna 1 to gNB antenna 1
+397169.968754 [PHY]    I Attaching RU 0 antenna 2 to gNB antenna 2
+397169.968755 [PHY]    I Attaching RU 0 antenna 3 to gNB antenna 3
+397169.968768 [UTIL]   I threadCreate() for Tpool0_-1: creating thread with affinity ffffffff, priority 97
+397169.971217 [UTIL]   I threadCreate() for Tpool1_-1: creating thread with affinity ffffffff, priority 97
+397169.977034 [UTIL]   I threadCreate() for Tpool2_-1: creating thread with affinity ffffffff, priority 97
+397169.980670 [UTIL]   I threadCreate() for Tpool3_-1: creating thread with affinity ffffffff, priority 97
+397169.983669 [UTIL]   I threadCreate() for Tpool4_-1: creating thread with affinity ffffffff, priority 97
+397169.986328 [UTIL]   I threadCreate() for Tpool5_-1: creating thread with affinity ffffffff, priority 97
+397169.988850 [UTIL]   I threadCreate() for Tpool6_-1: creating thread with affinity ffffffff, priority 97
+397169.991343 [UTIL]   I threadCreate() for Tpool7_-1: creating thread with affinity ffffffff, priority 97
+397169.994969 [UTIL]   I threadCreate() for L1_rx_thread: creating thread with affinity 0, priority 97
+397169.997656 [UTIL]   I threadCreate() for L1_tx_thread: creating thread with affinity 1, priority 97
+397170.000087 [UTIL]   I threadCreate() for L1_stats: creating thread with affinity ffffffff, priority 1
+397170.002523 [PHY]    I got sync (ru_thread)
+ 0x33ea69700
+RU0 CC0: Instance allocated.
+-> hInstance 0x2c5258e80
+xran_bm_init() hInstance 0x2c5258e80 poolIdx 0 elements 1023 size 14116
+xran_bm_allocate_buffer() hInstance 0x2c5258e80 poolIdx 0 count 560
+xran_bm_init() hInstance 0x2c5258e80 poolIdx 1 elements 1023 size 12112
+xran_bm_allocate_buffer() hInstance 0x2c5258e80 poolIdx 1 count 40
+xran_bm_init() hInstance 0x2c5258e80 poolIdx 2 elements 1023 size 13168
+xran_bm_allocate_buffer() hInstance 0x2c5258e80 poolIdx 2 count 560
+xran_bm_init() hInstance 0x2c5258e80 poolIdx 3 elements 1023 size 12112
+xran_bm_allocate_buffer() hInstance 0x2c5258e80 poolIdx 3 count 40
+xran_bm_init() hInstance 0x2c5258e80 poolIdx 4 elements 1023 size 3360
+xran_bm_allocate_buffer() hInstance 0x2c5258e80 poolIdx 4 count 560
+xran_bm_init() hInstance 0x2c5258e80 poolIdx 5 elements 1023 size 12112
+xran_bm_allocate_buffer() hInstance 0x2c5258e80 poolIdx 5 count 40
+
+xran_5g_fronthault_config: [p 0 CC  0] Cb 0x7f2fe54e90c0 cb 0x7f2fe554c43c
+
+xran_5g_prach_req: [p 0 CC  0] Cb 0x7f2fe54e9dd0 cb 0x7f2fe554c430
+ORAN: get_internal_parameter
+ORAN: get_internal_parameter
+ORAN: trx_oran_start
+XRAN_UP_VF: 0x0000
+Waiting for timing thread to be active ....0
+xran_timingsource_thread [CPU  4] [PID:     80]
+Initial TTI interval : 500 [us]
+O-DU: thread_run start time: 06/28/26 17:04:10.000000014 UTC [500]
+
+*** Timer thread active ***
+Start timing source. Done
+Start Workers !!
+ORAN operating mode: O-DU
+  Num of configured cores: 2
+  Num of configured RUs  : 1
+    O-RU[0]: Cat-A CC[ 1] eAxC[ 4]
+RU0 XRAN_JOB_TYPE_OTA_CB worker id 0
+RU0 XRAN_JOB_TYPE_CP_UL  worker id 1
+RU0 XRAN_JOB_TYPE_CP_DL  worker id 1
+RU0 XRAN_JOB_TYPE_SYM_CB worker id 0
+Worker0 [CPU 5] Starting (fh_rx_bbdev-5)
+Start worker thread. Done
+ ------------------------------------------------------------------------------------
+ xRAN allocated buffer using DPDK: 
+ ------------------------------------------------------------------------------------
+           String Name                 Start              Size(Bytes)
+ ------------------------------------------------------------------------------------
+ ------------------------------------------------------------------------------------
+                     Buffers Alloc:       145 /         Size Alloc:  2,623,948,320
+ ------------------------------------------------------------------------------------
+
+
+O-DU: XRAN start time: 06/28/26 17:04:10.142584970 UTC [500]
+XRAN Start! RU0 [1]
+Start ORAN. Done
+Enable RU0 CC0 [0000000000000001:1]
+Activate CC. Done
+[PNF] waiting for OAI to be configured (eNB/RU)
+[PNF] OAI eNB/RU configured
+[PNF] About to call init_eNB_afterRU()
+TYPE <CTRL-C> TO TERMINATE
+397170.002529 [PHY]    I got sync (L1_stats_thread)
+397170.002533 [PHY]    I RU 0 no rf device
+397170.002544 [PHY]    I RU 0 RF started cpu_meas_enabled 0
+397175.855201 [HW]     I first_call set from phy cb
+397175.855599 [HW]     I before adjusting, OAI: frame=0 slot=0, XRAN: frame=0 slot=9
+397175.855606 [HW]     I After adjusting, OAI: frame=0 slot=9, XRAN: frame=0 slot=9
+[PNF] waiting for OAI to be started
+[PNF] Sending PNF_START_RESP
+Sending NFAPI_START_RESPONSE config:0x555d3c4c5730 phy_id:1
+[PNF] Sending first P7 slot indication
+397175.868246 [W] 3834595008: check_nr_p7_timing: ul_tti_request [1.19] TOO LATE by 689 us
+397176.868117 [PHY]    A Command line parameters for OAI UE: -C 3750000000 -r 273 --numerology 1 --ssb 1478 
+397177.128068 [I] 1392498368: nr_pnf_p7_get_msgs: [P7:1] msgs ontime 154 thr DL 0.01 UL 0.00 msg late 1 (vtime)
+397177.130921 [HW]     I [o-du 0][rx  172032 pps  172032 kbps 3556761][tx  127612 pps  127612 kbps 4717971][Total Msgs_Rcvd 172032]
+397177.130928 [HW]     I [o_du0][RX Timing][on time:  162560, early    9472 late       0 corrupt       0, duplicated       0]
+397177.130931 [HW]     I [o_du0][pusch0   18432 prach0    3072]
+397177.130934 [HW]     I [o_du0][pusch1   18432 prach1    3072]
+397177.130935 [HW]     I [o_du0][pusch2   18432 prach2    3072]
+397177.130936 [HW]     I [o_du0][pusch3   18432 prach3    3072]
+397177.130937 [HW]     I [o_du0][drop errors       0 ecpri errors       0 cp errors       0 up errors       0 pusch errors       0 prach errors       0]
+397178.408069 [I] 1392498368: nr_pnf_p7_get_msgs: [P7:1] msgs ontime 256 thr DL 0.05 UL 0.00 msg late 0 (vtime)
+397178.410920 [HW]     I [o-du 0][rx  344064 pps  172032 kbps 3556761][tx  255100 pps  127488 kbps 4717971][Total Msgs_Rcvd 344064]
+397178.410927 [HW]     I [o_du0][RX Timing][on time:  325212, early   18852 late       0 corrupt       0, duplicated       0]
+397178.410928 [HW]     I [o_du0][pusch0   36864 prach0    6144]
+397178.410930 [HW]     I [o_du0][pusch1   36864 prach1    6144]
+397178.410931 [HW]     I [o_du0][pusch2   36864 prach2    6144]
+397178.410933 [HW]     I [o_du0][pusch3   36864 prach3    6144]
+397178.410934 [HW]     I [o_du0][drop errors       0 ecpri errors       0 cp errors       0 up errors       0 pusch errors       0 prach errors       0]
+397179.688074 [I] 1392498368: nr_pnf_p7_get_msgs: [P7:1] msgs ontime 256 thr DL 0.05 UL 0.00 msg late 0 (vtime)
+397179.690922 [HW]     I [o-du 0][rx  516096 pps  172032 kbps 3556761][tx  382588 pps  127488 kbps 4717971][Total Msgs_Rcvd 516096]
+397179.690930 [HW]     I [o_du0][RX Timing][on time:  487842, early   28254 late       0 corrupt       0, duplicated       0]
+397179.690931 [HW]     I [o_du0][pusch0   55296 prach0    9216]
+397179.690932 [HW]     I [o_du0][pusch1   55296 prach1    9216]
+397179.690934 [HW]     I [o_du0][pusch2   55296 prach2    9216]
+397179.690935 [HW]     I [o_du0][pusch3   55296 prach3    9216]
+397179.690936 [HW]     I [o_du0][drop errors       0 ecpri errors       0 cp errors       0 up errors       0 pusch errors       0 prach errors       0]
+397180.968080 [I] 1392498368: nr_pnf_p7_get_msgs: [P7:1] msgs ontime 256 thr DL 0.05 UL 0.00 msg late 0 (vtime)
+397180.970923 [HW]     I [o-du 0][rx  688128 pps  172032 kbps 3556761][tx  510076 pps  127488 kbps 4717971][Total Msgs_Rcvd 688128]
+397180.970930 [HW]     I [o_du0][RX Timing][on time:  650400, early   37728 late       0 corrupt       0, duplicated       0]
+397180.970932 [HW]     I [o_du0][pusch0   73728 prach0   12288]
+397180.970933 [HW]     I [o_du0][pusch1   73728 prach1   12288]
+397180.970934 [HW]     I [o_du0][pusch2   73728 prach2   12288]
+397180.970936 [HW]     I [o_du0][pusch3   73728 prach3   12288]
+397180.970937 [HW]     I [o_du0][drop errors       0 ecpri errors       0 cp errors       0 up errors       0 pusch errors       0 prach errors       0]
+397182.248068 [I] 1392498368: nr_pnf_p7_get_msgs: [P7:1] msgs ontime 256 thr DL 0.05 UL 0.00 msg late 0 (vtime)
+397182.250918 [HW]     I [o-du 0][rx  860160 pps  172032 kbps 3556761][tx  637564 pps  127488 kbps 4717971][Total Msgs_Rcvd 860160]
+397182.250925 [HW]     I [o_du0][RX Timing][on time:  813132, early   47028 late       0 corrupt       0, duplicated       0]
+397182.250928 [HW]     I [o_du0][pusch0   92160 prach0   15360]
+397182.250929 [HW]     I [o_du0][pusch1   92160 prach1   15360]
+397182.250931 [HW]     I [o_du0][pusch2   92160 prach2   15360]
+397182.250932 [HW]     I [o_du0][pusch3   92160 prach3   15360]
+397182.250933 [HW]     I [o_du0][drop errors       0 ecpri errors       0 cp errors       0 up errors       0 pusch errors       0 prach errors       0]
+397183.528072 [I] 1392498368: nr_pnf_p7_get_msgs: [P7:1] msgs ontime 256 thr DL 0.05 UL 0.00 msg late 0 (vtime)
+397183.530920 [HW]     I [o-du 0][rx 1032192 pps  172032 kbps 3556761][tx  765052 pps  127488 kbps 4717971][Total Msgs_Rcvd 1032192]
+397183.530927 [HW]     I [o_du0][RX Timing][on time:  975769, early   56423 late       0 corrupt       0, duplicated       0]
+397183.530929 [HW]     I [o_du0][pusch0  110592 prach0   18432]
+397183.530931 [HW]     I [o_du0][pusch1  110592 prach1   18432]
+397183.530933 [HW]     I [o_du0][pusch2  110592 prach2   18432]
+397183.530934 [HW]     I [o_du0][pusch3  110592 prach3   18432]
+397183.530935 [HW]     I [o_du0][drop errors       0 ecpri errors       0 cp errors       0 up errors       0 pusch errors       0 prach errors       0]
+397184.808072 [I] 1392498368: nr_pnf_p7_get_msgs: [P7:1] msgs ontime 256 thr DL 0.05 UL 0.00 msg late 0 (vtime)
+397184.810922 [HW]     I [o-du 0][rx 1204224 pps  172032 kbps 3556761][tx  892540 pps  127488 kbps 4717971][Total Msgs_Rcvd 1204224]
+397184.810930 [HW]     I [o_du0][RX Timing][on time: 1138384, early   65840 late       0 corrupt       0, duplicated       0]
+397184.810932 [HW]     I [o_du0][pusch0  129024 prach0   21504]
+397184.810933 [HW]     I [o_du0][pusch1  129024 prach1   21504]
+397184.810934 [HW]     I [o_du0][pusch2  129024 prach2   21504]
+397184.810936 [HW]     I [o_du0][pusch3  129024 prach3   21504]
+397184.810937 [HW]     I [o_du0][drop errors       0 ecpri errors       0 cp errors       0 up errors       0 pusch errors       0 prach errors       0]
+397186.088069 [I] 1392498368: nr_pnf_p7_get_msgs: [P7:1] msgs ontime 256 thr DL 0.05 UL 0.00 msg late 0 (vtime)
+397186.090916 [HW]     I [o-du 0][rx 1376256 pps  172032 kbps 3556761][tx 1020028 pps  127488 kbps 4717971][Total Msgs_Rcvd 1376256]
+397186.090923 [HW]     I [o_du0][RX Timing][on time: 1300944, early   75312 late       0 corrupt       0, duplicated       0]
+397186.090925 [HW]     I [o_du0][pusch0  147456 prach0   24576]
+397186.090926 [HW]     I [o_du0][pusch1  147456 prach1   24576]
+397186.090927 [HW]     I [o_du0][pusch2  147456 prach2   24576]
+397186.090929 [HW]     I [o_du0][pusch3  147456 prach3   24576]
+397186.090930 [HW]     I [o_du0][drop errors       0 ecpri errors       0 cp errors       0 up errors       0 pusch errors       0 prach errors       0]
+397186.100709 [PHY]    I prach_I0 = 19.8 dB
+397187.368069 [I] 1392498368: nr_pnf_p7_get_msgs: [P7:1] msgs ontime 256 thr DL 0.05 UL 0.00 msg late 0 (vtime)
+397187.370919 [HW]     I [o-du 0][rx 1548288 pps  172032 kbps 3556761][tx 1147516 pps  127488 kbps 4717971][Total Msgs_Rcvd 1548288]
+397187.370926 [HW]     I [o_du0][RX Timing][on time: 1463587, early   84701 late       0 corrupt       0, duplicated       0]
+397187.370929 [HW]     I [o_du0][pusch0  165888 prach0   27648]
+397187.370931 [HW]     I [o_du0][pusch1  165888 prach1   27648]
+397187.370932 [HW]     I [o_du0][pusch2  165888 prach2   27648]
+397187.370933 [HW]     I [o_du0][pusch3  165888 prach3   27648]
+397187.370934 [HW]     I [o_du0][drop errors       0 ecpri errors       0 cp errors       0 up errors       0 pusch errors       0 prach errors       0]
+397188.648075 [I] 1392498368: nr_pnf_p7_get_msgs: [P7:1] msgs ontime 256 thr DL 0.05 UL 0.00 msg late 0 (vtime)
+397188.650921 [HW]     I [o-du 0][rx 1720320 pps  172032 kbps 3556761][tx 1275004 pps  127488 kbps 4717971][Total Msgs_Rcvd 1720320]
+397188.650928 [HW]     I [o_du0][RX Timing][on time: 1626225, early   94095 late       0 corrupt       0, duplicated       0]
+397188.650930 [HW]     I [o_du0][pusch0  184320 prach0   30720]
+397188.650931 [HW]     I [o_du0][pusch1  184320 prach1   30720]
+397188.650944 [HW]     I [o_du0][pusch2  184320 prach2   30720]
+397188.650945 [HW]     I [o_du0][pusch3  184320 prach3   30720]
+397188.650947 [HW]     I [o_du0][drop errors       0 ecpri errors       0 cp errors       0 up errors       0 pusch errors       0 prach errors       0]
+397189.928075 [I] 1392498368: nr_pnf_p7_get_msgs: [P7:1] msgs ontime 256 thr DL 0.05 UL 0.00 msg late 0 (vtime)
+397189.930923 [HW]     I [o-du 0][rx 1892352 pps  172032 kbps 3556761][tx 1402492 pps  127488 kbps 4717971][Total Msgs_Rcvd 1892352]
+397189.930930 [HW]     I [o_du0][RX Timing][on time: 1788809, early  103543 late       0 corrupt       0, duplicated       0]
+397189.930933 [HW]     I [o_du0][pusch0  202752 prach0   33792]
+397189.930944 [HW]     I [o_du0][pusch1  202752 prach1   33792]
+397189.930945 [HW]     I [o_du0][pusch2  202752 prach2   33792]
+397189.930946 [HW]     I [o_du0][pusch3  202752 prach3   33792]
+397189.930947 [HW]     I [o_du0][drop errors       0 ecpri errors       0 cp errors       0 up errors       0 pusch errors       0 prach errors       0]
+397191.208071 [I] 1392498368: nr_pnf_p7_get_msgs: [P7:1] msgs ontime 256 thr DL 0.05 UL 0.00 msg late 0 (vtime)
+397191.210917 [HW]     I [o-du 0][rx 2064384 pps  172032 kbps 3556761][tx 1529980 pps  127488 kbps 4717971][Total Msgs_Rcvd 2064384]
+397191.210924 [HW]     I [o_du0][RX Timing][on time: 1951406, early  112978 late       0 corrupt       0, duplicated       0]
+397191.210925 [HW]     I [o_du0][pusch0  221184 prach0   36864]
+397191.210927 [HW]     I [o_du0][pusch1  221184 prach1   36864]
+397191.210928 [HW]     I [o_du0][pusch2  221184 prach2   36864]
+397191.210929 [HW]     I [o_du0][pusch3  221184 prach3   36864]
+397191.210930 [HW]     I [o_du0][drop errors       0 ecpri errors       0 cp errors       0 up errors       0 pusch errors       0 prach errors       0]
+397192.488073 [I] 1392498368: nr_pnf_p7_get_msgs: [P7:1] msgs ontime 256 thr DL 0.05 UL 0.00 msg late 0 (vtime)
+397192.490920 [HW]     I [o-du 0][rx 2236416 pps  172032 kbps 3556761][tx 1657468 pps  127488 kbps 4717971][Total Msgs_Rcvd 2236416]
+397192.490927 [HW]     I [o_du0][RX Timing][on time: 2114078, early  122338 late       0 corrupt       0, duplicated       0]
+397192.490931 [HW]     I [o_du0][pusch0  239616 prach0   39936]
+397192.490933 [HW]     I [o_du0][pusch1  239616 prach1   39936]
+397192.490934 [HW]     I [o_du0][pusch2  239616 prach2   39936]
+397192.490935 [HW]     I [o_du0][pusch3  239616 prach3   39936]
+397192.490936 [HW]     I [o_du0][drop errors       0 ecpri errors       0 cp errors       0 up errors       0 pusch errors       0 prach errors       0]
+397193.768075 [I] 1392498368: nr_pnf_p7_get_msgs: [P7:1] msgs ontime 256 thr DL 0.05 UL 0.00 msg late 0 (vtime)
+397193.770922 [HW]     I [o-du 0][rx 2408448 pps  172032 kbps 3556761][tx 1784956 pps  127488 kbps 4717971][Total Msgs_Rcvd 2408448]
+397193.770929 [HW]     I [o_du0][RX Timing][on time: 2276700, early  131748 late       0 corrupt       0, duplicated       0]
+397193.770931 [HW]     I [o_du0][pusch0  258048 prach0   43008]
+397193.770932 [HW]     I [o_du0][pusch1  258048 prach1   43008]
+397193.770933 [HW]     I [o_du0][pusch2  258048 prach2   43008]
+397193.770935 [HW]     I [o_du0][pusch3  258048 prach3   43008]
+397193.770936 [HW]     I [o_du0][drop errors       0 ecpri errors       0 cp errors       0 up errors       0 pusch errors       0 prach errors       0]
+397195.048069 [I] 1392498368: nr_pnf_p7_get_msgs: [P7:1] msgs ontime 256 thr DL 0.05 UL 0.00 msg late 0 (vtime)
+397195.050915 [HW]     I [o-du 0][rx 2580480 pps  172032 kbps 3556761][tx 1912444 pps  127488 kbps 4717971][Total Msgs_Rcvd 2580480]
+397195.050923 [HW]     I [o_du0][RX Timing][on time: 2439251, early  141229 late       0 corrupt       0, duplicated       0]
+397195.050924 [HW]     I [o_du0][pusch0  276480 prach0   46080]
+397195.050926 [HW]     I [o_du0][pusch1  276480 prach1   46080]
+397195.050936 [HW]     I [o_du0][pusch2  276480 prach2   46080]
+397195.050937 [HW]     I [o_du0][pusch3  276480 prach3   46080]
+397195.050938 [HW]     I [o_du0][drop errors       0 ecpri errors       0 cp errors       0 up errors       0 pusch errors       0 prach errors       0]
+397196.328073 [I] 1392498368: nr_pnf_p7_get_msgs: [P7:1] msgs ontime 256 thr DL 0.05 UL 0.00 msg late 0 (vtime)
+397196.330918 [HW]     I [o-du 0][rx 2752512 pps  172032 kbps 3556761][tx 2039932 pps  127488 kbps 4717971][Total Msgs_Rcvd 2752512]
+397196.330925 [HW]     I [o_du0][RX Timing][on time: 2601909, early  150603 late       0 corrupt       0, duplicated       0]
+397196.330928 [HW]     I [o_du0][pusch0  294912 prach0   49152]
+397196.330930 [HW]     I [o_du0][pusch1  294912 prach1   49152]
+397196.330932 [HW]     I [o_du0][pusch2  294912 prach2   49152]
+397196.330932 [HW]     I [o_du0][pusch3  294912 prach3   49152]
+397196.330934 [HW]     I [o_du0][drop errors       0 ecpri errors       0 cp errors       0 up errors       0 pusch errors       0 prach errors       0]
+397196.340710 [PHY]    I prach_I0 = 19.8 dB
+397197.608081 [I] 1392498368: nr_pnf_p7_get_msgs: [P7:1] msgs ontime 256 thr DL 0.05 UL 0.00 msg late 0 (vtime)
+397197.610921 [HW]     I [o-du 0][rx 2924544 pps  172032 kbps 3556761][tx 2167420 pps  127488 kbps 4717971][Total Msgs_Rcvd 2924544]
+397197.610928 [HW]     I [o_du0][RX Timing][on time: 2764539, early  160005 late       0 corrupt       0, duplicated       0]
+397197.610930 [HW]     I [o_du0][pusch0  313344 prach0   52224]
+397197.610931 [HW]     I [o_du0][pusch1  313344 prach1   52224]
+397197.610933 [HW]     I [o_du0][pusch2  313344 prach2   52224]
+397197.610934 [HW]     I [o_du0][pusch3  313344 prach3   52224]
+397197.610935 [HW]     I [o_du0][drop errors       0 ecpri errors       0 cp errors       0 up errors       0 pusch errors       0 prach errors       0]
+397198.888077 [I] 1392498368: nr_pnf_p7_get_msgs: [P7:1] msgs ontime 256 thr DL 0.05 UL 0.00 msg late 0 (vtime)
+397198.890923 [HW]     I [o-du 0][rx 3096576 pps  172032 kbps 3556761][tx 2294908 pps  127488 kbps 4717971][Total Msgs_Rcvd 3096576]
+397198.890930 [HW]     I [o_du0][RX Timing][on time: 2927140, early  169436 late       0 corrupt       0, duplicated       0]
+397198.890932 [HW]     I [o_du0][pusch0  331776 prach0   55296]
+397198.890933 [HW]     I [o_du0][pusch1  331776 prach1   55296]
+397198.890943 [HW]     I [o_du0][pusch2  331776 prach2   55296]
+397198.890944 [HW]     I [o_du0][pusch3  331776 prach3   55296]
+397198.890945 [HW]     I [o_du0][drop errors       0 ecpri errors       0 cp errors       0 up errors       0 pusch errors       0 prach errors       0]
+397200.168071 [I] 1392498368: nr_pnf_p7_get_msgs: [P7:1] msgs ontime 256 thr DL 0.05 UL 0.00 msg late 0 (vtime)
+397200.170918 [HW]     I [o-du 0][rx 3268608 pps  172032 kbps 3556761][tx 2422396 pps  127488 kbps 4717971][Total Msgs_Rcvd 3268608]
+397200.170924 [HW]     I [o_du0][RX Timing][on time: 3089732, early  178876 late       0 corrupt       0, duplicated       0]
+397200.170926 [HW]     I [o_du0][pusch0  350208 prach0   58368]
+397200.170927 [HW]     I [o_du0][pusch1  350208 prach1   58368]
+397200.170928 [HW]     I [o_du0][pusch2  350208 prach2   58368]
+397200.170930 [HW]     I [o_du0][pusch3  350208 prach3   58368]
+397200.170931 [HW]     I [o_du0][drop errors       0 ecpri errors       0 cp errors       0 up errors       0 pusch errors       0 prach errors       0]
+397201.448073 [I] 1392498368: nr_pnf_p7_get_msgs: [P7:1] msgs ontime 256 thr DL 0.05 UL 0.00 msg late 0 (vtime)
+397201.450919 [HW]     I [o-du 0][rx 3440640 pps  172032 kbps 3556761][tx 2549884 pps  127488 kbps 4717971][Total Msgs_Rcvd 3440640]
+397201.450926 [HW]     I [o_du0][RX Timing][on time: 3252374, early  188266 late       0 corrupt       0, duplicated       0]
+397201.450929 [HW]     I [o_du0][pusch0  368640 prach0   61440]
+397201.450931 [HW]     I [o_du0][pusch1  368640 prach1   61440]
+397201.450932 [HW]     I [o_du0][pusch2  368640 prach2   61440]
+397201.450933 [HW]     I [o_du0][pusch3  368640 prach3   61440]
+397201.450934 [HW]     I [o_du0][drop errors       0 ecpri errors       0 cp errors       0 up errors       0 pusch errors       0 prach errors       0]
+397202.728075 [I] 1392498368: nr_pnf_p7_get_msgs: [P7:1] msgs ontime 256 thr DL 0.05 UL 0.00 msg late 0 (vtime)
+397202.730922 [HW]     I [o-du 0][rx 3612672 pps  172032 kbps 3556761][tx 2677372 pps  127488 kbps 4717971][Total Msgs_Rcvd 3612672]
+397202.730928 [HW]     I [o_du0][RX Timing][on time: 3415015, early  197657 late       0 corrupt       0, duplicated       0]
+397202.730930 [HW]     I [o_du0][pusch0  387072 prach0   64512]
+397202.730932 [HW]     I [o_du0][pusch1  387072 prach1   64512]
+397202.730941 [HW]     I [o_du0][pusch2  387072 prach2   64512]
+397202.730942 [HW]     I [o_du0][pusch3  387072 prach3   64512]
+397202.730943 [HW]     I [o_du0][drop errors       0 ecpri errors       0 cp errors       0 up errors       0 pusch errors       0 prach errors       0]
+397204.008077 [I] 1392498368: nr_pnf_p7_get_msgs: [P7:1] msgs ontime 256 thr DL 0.05 UL 0.00 msg late 0 (vtime)
+397204.010915 [HW]     I [o-du 0][rx 3784704 pps  172032 kbps 3556761][tx 2804860 pps  127488 kbps 4717971][Total Msgs_Rcvd 3784704]
+397204.010922 [HW]     I [o_du0][RX Timing][on time: 3577579, early  207125 late       0 corrupt       0, duplicated       0]
+397204.010924 [HW]     I [o_du0][pusch0  405504 prach0   67584]
+397204.010925 [HW]     I [o_du0][pusch1  405504 prach1   67584]
+397204.010927 [HW]     I [o_du0][pusch2  405504 prach2   67584]
+397204.010928 [HW]     I [o_du0][pusch3  405504 prach3   67584]
+397204.010929 [HW]     I [o_du0][drop errors       0 ecpri errors       0 cp errors       0 up errors       0 pusch errors       0 prach errors       0]
+397205.288071 [I] 1392498368: nr_pnf_p7_get_msgs: [P7:1] msgs ontime 256 thr DL 0.05 UL 0.00 msg late 0 (vtime)
+397205.290918 [HW]     I [o-du 0][rx 3956736 pps  172032 kbps 3556761][tx 2932348 pps  127488 kbps 4717971][Total Msgs_Rcvd 3956736]
+397205.290925 [HW]     I [o_du0][RX Timing][on time: 3740240, early  216496 late       0 corrupt       0, duplicated       0]
+397205.290927 [HW]     I [o_du0][pusch0  423936 prach0   70656]
+397205.290928 [HW]     I [o_du0][pusch1  423936 prach1   70656]
+397205.290937 [HW]     I [o_du0][pusch2  423936 prach2   70656]
+397205.290938 [HW]     I [o_du0][pusch3  423936 prach3   70656]
+397205.290939 [HW]     I [o_du0][drop errors       0 ecpri errors       0 cp errors       0 up errors       0 pusch errors       0 prach errors       0]
+397206.568073 [I] 1392498368: nr_pnf_p7_get_msgs: [P7:1] msgs ontime 256 thr DL 0.05 UL 0.00 msg late 0 (vtime)
+397206.570920 [HW]     I [o-du 0][rx 4128768 pps  172032 kbps 3556761][tx 3059836 pps  127488 kbps 4717971][Total Msgs_Rcvd 4128768]
+397206.570927 [HW]     I [o_du0][RX Timing][on time: 3902868, early  225900 late       0 corrupt       0, duplicated       0]
+397206.570928 [HW]     I [o_du0][pusch0  442368 prach0   73728]
+397206.570930 [HW]     I [o_du0][pusch1  442368 prach1   73728]
+397206.570931 [HW]     I [o_du0][pusch2  442368 prach2   73728]
+397206.570932 [HW]     I [o_du0][pusch3  442368 prach3   73728]
+397206.570934 [HW]     I [o_du0][drop errors       0 ecpri errors       0 cp errors       0 up errors       0 pusch errors       0 prach errors       0]
+397206.580717 [PHY]    I prach_I0 = 19.8 dB
+397207.848077 [I] 1392498368: nr_pnf_p7_get_msgs: [P7:1] msgs ontime 256 thr DL 0.05 UL 0.00 msg late 0 (vtime)
+397207.850922 [HW]     I [o-du 0][rx 4300800 pps  172032 kbps 3556761][tx 3187324 pps  127488 kbps 4717971][Total Msgs_Rcvd 4300800]
+397207.850929 [HW]     I [o_du0][RX Timing][on time: 4065479, early  235321 late       0 corrupt       0, duplicated       0]
+397207.850931 [HW]     I [o_du0][pusch0  460800 prach0   76800]
+397207.850932 [HW]     I [o_du0][pusch1  460800 prach1   76800]
+397207.850933 [HW]     I [o_du0][pusch2  460800 prach2   76800]
+397207.850935 [HW]     I [o_du0][pusch3  460800 prach3   76800]
+397207.850936 [HW]     I [o_du0][drop errors       0 ecpri errors       0 cp errors       0 up errors       0 pusch errors       0 prach errors       0]
+397209.128069 [I] 1392498368: nr_pnf_p7_get_msgs: [P7:1] msgs ontime 256 thr DL 0.05 UL 0.00 msg late 0 (vtime)
+397209.130917 [HW]     I [o-du 0][rx 4472832 pps  172032 kbps 3556761][tx 3314812 pps  127488 kbps 4717971][Total Msgs_Rcvd 4472832]
+397209.130923 [HW]     I [o_du0][RX Timing][on time: 4228039, early  244793 late       0 corrupt       0, duplicated       0]
+397209.130925 [HW]     I [o_du0][pusch0  479232 prach0   79872]
+397209.130926 [HW]     I [o_du0][pusch1  479232 prach1   79872]
+397209.130928 [HW]     I [o_du0][pusch2  479232 prach2   79872]
+397209.130929 [HW]     I [o_du0][pusch3  479232 prach3   79872]
+397209.130930 [HW]     I [o_du0][drop errors       0 ecpri errors       0 cp errors       0 up errors       0 pusch errors       0 prach errors       0]
+397210.408072 [I] 1392498368: nr_pnf_p7_get_msgs: [P7:1] msgs ontime 256 thr DL 0.05 UL 0.00 msg late 0 (vtime)
+397210.410919 [HW]     I [o-du 0][rx 4644864 pps  172032 kbps 3556761][tx 3442300 pps  127488 kbps 4717971][Total Msgs_Rcvd 4644864]
+397210.410926 [HW]     I [o_du0][RX Timing][on time: 4390681, early  254183 late       0 corrupt       0, duplicated       0]
+397210.410929 [HW]     I [o_du0][pusch0  497664 prach0   82944]
+397210.410931 [HW]     I [o_du0][pusch1  497664 prach1   82944]
+397210.410932 [HW]     I [o_du0][pusch2  497664 prach2   82944]
+397210.410933 [HW]     I [o_du0][pusch3  497664 prach3   82944]
+397210.410935 [HW]     I [o_du0][drop errors       0 ecpri errors       0 cp errors       0 up errors       0 pusch errors       0 prach errors       0]
+397211.688073 [I] 1392498368: nr_pnf_p7_get_msgs: [P7:1] msgs ontime 256 thr DL 0.05 UL 0.00 msg late 0 (vtime)
+397211.690921 [HW]     I [o-du 0][rx 4816896 pps  172032 kbps 3556761][tx 3569788 pps  127488 kbps 4717971][Total Msgs_Rcvd 4816896]
+397211.690928 [HW]     I [o_du0][RX Timing][on time: 4553307, early  263589 late       0 corrupt       0, duplicated       0]
+397211.690929 [HW]     I [o_du0][pusch0  516096 prach0   86016]
+397211.690931 [HW]     I [o_du0][pusch1  516096 prach1   86016]
+397211.690932 [HW]     I [o_du0][pusch2  516096 prach2   86016]
+397211.690933 [HW]     I [o_du0][pusch3  516096 prach3   86016]
+397211.690934 [HW]     I [o_du0][drop errors       0 ecpri errors       0 cp errors       0 up errors       0 pusch errors       0 prach errors       0]
+397212.968076 [I] 1392498368: nr_pnf_p7_get_msgs: [P7:1] msgs ontime 256 thr DL 0.05 UL 0.00 msg late 0 (vtime)
+397212.970923 [HW]     I [o-du 0][rx 4988928 pps  172032 kbps 3556761][tx 3697276 pps  127488 kbps 4717971][Total Msgs_Rcvd 4988928]
+397212.970930 [HW]     I [o_du0][RX Timing][on time: 4715907, early  273021 late       0 corrupt       0, duplicated       0]
+397212.970931 [HW]     I [o_du0][pusch0  534528 prach0   89088]
+397212.970933 [HW]     I [o_du0][pusch1  534528 prach1   89088]
+397212.970934 [HW]     I [o_du0][pusch2  534528 prach2   89088]
+397212.970936 [HW]     I [o_du0][pusch3  534528 prach3   89088]
+397212.970937 [HW]     I [o_du0][drop errors       0 ecpri errors       0 cp errors       0 up errors       0 pusch errors       0 prach errors       0]
+397213.730757 [NR_PHY] A [RAPROC] 715.19 Initiating RA procedure with preamble 52, energy 55.7 dB (I0 199, thres 130), delay 48 start symbol 0 freq index 0
+397213.750752 [NR_PHY] A [RAPROC] 717.19 Initiating RA procedure with preamble 38, energy 55.7 dB (I0 235, thres 130), delay 9 start symbol 0 freq index 0
+397213.770750 [NR_PHY] A [RAPROC] 719.19 Initiating RA procedure with preamble 26, energy 54.9 dB (I0 263, thres 130), delay 35 start symbol 0 freq index 0
+397213.870751 [NR_PHY] A [RAPROC] 729.19 Initiating RA procedure with preamble 22, energy 52.7 dB (I0 227, thres 130), delay 9 start symbol 0 freq index 0
+397213.890747 [NR_PHY] A [RAPROC] 731.19 Initiating RA procedure with preamble 5, energy 52.7 dB (I0 254, thres 130), delay 2 start symbol 0 freq index 0
+397213.990754 [NR_PHY] A [RAPROC] 741.19 Initiating RA procedure with preamble 52, energy 52.7 dB (I0 223, thres 130), delay 16 start symbol 0 freq index 0
+397214.010740 [NR_PHY] A [RAPROC] 743.19 Initiating RA procedure with preamble 52, energy 52.7 dB (I0 250, thres 130), delay 1 start symbol 0 freq index 0
+397214.030742 [NR_PHY] A [RAPROC] 745.19 Initiating RA procedure with preamble 60, energy 52.7 dB (I0 272, thres 130), delay 3 start symbol 0 freq index 0
+397214.248078 [I] 1392498368: nr_pnf_p7_get_msgs: [P7:1] msgs ontime 328 thr DL 0.05 UL 0.00 msg late 0 (vtime)
+397214.250918 [HW]     I [o-du 0][rx 5160960 pps  172032 kbps 3556761][tx 3824764 pps  127488 kbps 4717971][Total Msgs_Rcvd 5160960]
+397214.250926 [HW]     I [o_du0][RX Timing][on time: 4878544, early  282416 late       0 corrupt       0, duplicated       0]
+397214.250927 [HW]     I [o_du0][pusch0  552960 prach0   92160]
+397214.250929 [HW]     I [o_du0][pusch1  552960 prach1   92160]
+397214.250939 [HW]     I [o_du0][pusch2  552960 prach2   92160]
+397214.250940 [HW]     I [o_du0][pusch3  552960 prach3   92160]
+397214.250941 [HW]     I [o_du0][drop errors       0 ecpri errors       0 cp errors       0 up errors       0 pusch errors       0 prach errors       0]
+397215.528074 [I] 1392498368: nr_pnf_p7_get_msgs: [P7:1] msgs ontime 256 thr DL 0.05 UL 0.00 msg late 0 (vtime)
+397215.530920 [HW]     I [o-du 0][rx 5332992 pps  172032 kbps 3556761][tx 3952252 pps  127488 kbps 4717971][Total Msgs_Rcvd 5332992]
+397215.530927 [HW]     I [o_du0][RX Timing][on time: 5041186, early  291806 late       0 corrupt       0, duplicated       0]
+397215.530930 [HW]     I [o_du0][pusch0  571392 prach0   95232]
+397215.530932 [HW]     I [o_du0][pusch1  571392 prach1   95232]
+397215.530942 [HW]     I [o_du0][pusch2  571392 prach2   95232]
+397215.530943 [HW]     I [o_du0][pusch3  571392 prach3   95232]
+397215.530945 [HW]     I [o_du0][drop errors       0 ecpri errors       0 cp errors       0 up errors       0 pusch errors       0 prach errors       0]
+397216.808075 [I] 1392498368: nr_pnf_p7_get_msgs: [P7:1] msgs ontime 256 thr DL 0.05 UL 0.00 msg late 0 (vtime)
+397216.810922 [HW]     I [o-du 0][rx 5505024 pps  172032 kbps 3556761][tx 4079740 pps  127488 kbps 4717971][Total Msgs_Rcvd 5505024]
+397216.810930 [HW]     I [o_du0][RX Timing][on time: 5203808, early  301216 late       0 corrupt       0, duplicated       0]
+397216.810931 [HW]     I [o_du0][pusch0  589824 prach0   98304]
+397216.810932 [HW]     I [o_du0][pusch1  589824 prach1   98304]
+397216.810933 [HW]     I [o_du0][pusch2  589824 prach2   98304]
+397216.810935 [HW]     I [o_du0][pusch3  589824 prach3   98304]
+397216.810936 [HW]     I [o_du0][drop errors       0 ecpri errors       0 cp errors       0 up errors       0 pusch errors       0 prach errors       0]
+397216.820720 [PHY]    I prach_I0 = 23.2 dB
+397218.088070 [I] 1392498368: nr_pnf_p7_get_msgs: [P7:1] msgs ontime 256 thr DL 0.05 UL 0.00 msg late 0 (vtime)
+397218.090916 [HW]     I [o-du 0][rx 5677056 pps  172032 kbps 3556761][tx 4207228 pps  127488 kbps 4717971][Total Msgs_Rcvd 5677056]
+397218.090923 [HW]     I [o_du0][RX Timing][on time: 5366362, early  310694 late       0 corrupt       0, duplicated       0]
+397218.090925 [HW]     I [o_du0][pusch0  608256 prach0  101376]
+397218.090926 [HW]     I [o_du0][pusch1  608256 prach1  101376]
+397218.090927 [HW]     I [o_du0][pusch2  608256 prach2  101376]
+397218.090929 [HW]     I [o_du0][pusch3  608256 prach3  101376]
+397218.090930 [HW]     I [o_du0][drop errors       0 ecpri errors       0 cp errors       0 up errors       0 pusch errors       0 prach errors       0]
+397219.368074 [I] 1392498368: nr_pnf_p7_get_msgs: [P7:1] msgs ontime 256 thr DL 0.05 UL 0.00 msg late 0 (vtime)
+397219.370918 [HW]     I [o-du 0][rx 5849088 pps  172032 kbps 3556761][tx 4334716 pps  127488 kbps 4717971][Total Msgs_Rcvd 5849088]
+397219.370925 [HW]     I [o_du0][RX Timing][on time: 5529006, early  320082 late       0 corrupt       0, duplicated       0]
+397219.370927 [HW]     I [o_du0][pusch0  626688 prach0  104448]
+397219.370928 [HW]     I [o_du0][pusch1  626688 prach1  104448]
+397219.370930 [HW]     I [o_du0][pusch2  626688 prach2  104448]
+397219.370931 [HW]     I [o_du0][pusch3  626688 prach3  104448]
+397219.370932 [HW]     I [o_du0][drop errors       0 ecpri errors       0 cp errors       0 up errors       0 pusch errors       0 prach errors       0]
+397220.648073 [I] 1392498368: nr_pnf_p7_get_msgs: [P7:1] msgs ontime 256 thr DL 0.05 UL 0.00 msg late 0 (vtime)
+397220.650921 [HW]     I [o-du 0][rx 6021120 pps  172032 kbps 3556761][tx 4462204 pps  127488 kbps 4717971][Total Msgs_Rcvd 6021120]
+397220.650928 [HW]     I [o_du0][RX Timing][on time: 5691636, early  329484 late       0 corrupt       0, duplicated       0]
+397220.650930 [HW]     I [o_du0][pusch0  645120 prach0  107520]
+397220.650931 [HW]     I [o_du0][pusch1  645120 prach1  107520]
+397220.650933 [HW]     I [o_du0][pusch2  645120 prach2  107520]
+397220.650934 [HW]     I [o_du0][pusch3  645120 prach3  107520]
+397220.650935 [HW]     I [o_du0][drop errors       0 ecpri errors       0 cp errors       0 up errors       0 pusch errors       0 prach errors       0]
+397221.928079 [I] 1392498368: nr_pnf_p7_get_msgs: [P7:1] msgs ontime 256 thr DL 0.05 UL 0.00 msg late 0 (vtime)
+397221.930923 [HW]     I [o-du 0][rx 6193152 pps  172032 kbps 3556761][tx 4589692 pps  127488 kbps 4717971][Total Msgs_Rcvd 6193152]
+397221.930930 [HW]     I [o_du0][RX Timing][on time: 5854229, early  338923 late       0 corrupt       0, duplicated       0]
+397221.930932 [HW]     I [o_du0][pusch0  663552 prach0  110592]
+397221.930933 [HW]     I [o_du0][pusch1  663552 prach1  110592]
+397221.930934 [HW]     I [o_du0][pusch2  663552 prach2  110592]
+397221.930936 [HW]     I [o_du0][pusch3  663552 prach3  110592]
+397221.930937 [HW]     I [o_du0][drop errors       0 ecpri errors       0 cp errors       0 up errors       0 pusch errors       0 prach errors       0]
+397223.208075 [I] 1392498368: nr_pnf_p7_get_msgs: [P7:1] msgs ontime 256 thr DL 0.05 UL 0.00 msg late 0 (vtime)
+397223.210918 [HW]     I [o-du 0][rx 6365184 pps  172032 kbps 3556761][tx 4717180 pps  127488 kbps 4717971][Total Msgs_Rcvd 6365184]
+397223.210924 [HW]     I [o_du0][RX Timing][on time: 6016847, early  348337 late       0 corrupt       0, duplicated       0]
+397223.210926 [HW]     I [o_du0][pusch0  681984 prach0  113664]
+397223.210928 [HW]     I [o_du0][pusch1  681984 prach1  113664]
+397223.210929 [HW]     I [o_du0][pusch2  681984 prach2  113664]
+397223.210930 [HW]     I [o_du0][pusch3  681984 prach3  113664]
+397223.210931 [HW]     I [o_du0][drop errors       0 ecpri errors       0 cp errors       0 up errors       0 pusch errors       0 prach errors       0]
+397224.190747 [NR_PHY] A [RAPROC] 737.19 Initiating RA procedure with preamble 0, energy 54.9 dB (I0 201, thres 130), delay 0 start symbol 0 freq index 0
+397224.488074 [I] 1392498368: nr_pnf_p7_get_msgs: [P7:1] msgs ontime 381 thr DL 0.06 UL 0.01 msg late 0 (vtime)
+397224.490919 [HW]     I [o-du 0][rx 6537216 pps  172032 kbps 3556761][tx 4844668 pps  127488 kbps 4717971][Total Msgs_Rcvd 6537216]
+397224.490927 [HW]     I [o_du0][RX Timing][on time: 6179495, early  357721 late       0 corrupt       0, duplicated       0]
+397224.490929 [HW]     I [o_du0][pusch0  700416 prach0  116736]
+397224.490930 [HW]     I [o_du0][pusch1  700416 prach1  116736]
+397224.490931 [HW]     I [o_du0][pusch2  700416 prach2  116736]
+397224.490933 [HW]     I [o_du0][pusch3  700416 prach3  116736]
+397224.490934 [HW]     I [o_du0][drop errors       0 ecpri errors       0 cp errors       0 up errors       0 pusch errors       0 prach errors       0]
+397225.768075 [I] 1392498368: nr_pnf_p7_get_msgs: [P7:1] msgs ontime 1047 thr DL 1.15 UL 0.19 msg late 0 (vtime)
+397225.770923 [HW]     I [o-du 0][rx 6709248 pps  172032 kbps 3556761][tx 4972156 pps  127488 kbps 4717971][Total Msgs_Rcvd 6709248]
+397225.770933 [HW]     I [o_du0][RX Timing][on time: 6342110, early  367138 late       0 corrupt       0, duplicated       0]
+397225.770936 [HW]     I [o_du0][pusch0  718848 prach0  119808]
+397225.770938 [HW]     I [o_du0][pusch1  718848 prach1  119808]
+397225.770939 [HW]     I [o_du0][pusch2  718848 prach2  119808]
+397225.770940 [HW]     I [o_du0][pusch3  718848 prach3  119808]
+397225.770941 [HW]     I [o_du0][drop errors       0 ecpri errors       0 cp errors       0 up errors       0 pusch errors       0 prach errors       0]
+397227.048070 [I] 1392498368: nr_pnf_p7_get_msgs: [P7:1] msgs ontime 716 thr DL 0.41 UL 0.07 msg late 0 (vtime)
+397227.050916 [HW]     I [o-du 0][rx 6881280 pps  172032 kbps 3556761][tx 5099644 pps  127488 kbps 4717971][Total Msgs_Rcvd 6881280]
+397227.050927 [HW]     I [o_du0][RX Timing][on time: 6504663, early  376617 late       0 corrupt       0, duplicated       0]
+397227.050929 [HW]     I [o_du0][pusch0  737280 prach0  122880]
+397227.050931 [HW]     I [o_du0][pusch1  737280 prach1  122880]
+397227.050933 [HW]     I [o_du0][pusch2  737280 prach2  122880]
+397227.050934 [HW]     I [o_du0][pusch3  737280 prach3  122880]
+397227.050935 [HW]     I [o_du0][drop errors       0 ecpri errors       0 cp errors       0 up errors       0 pusch errors       0 prach errors       0]
+397227.060711 [PHY]    I prach_I0 = 23.2 dB
+397228.328075 [I] 1392498368: nr_pnf_p7_get_msgs: [P7:1] msgs ontime 610 thr DL 0.21 UL 0.01 msg late 0 (vtime)
+397228.330919 [HW]     I [o-du 0][rx 7053312 pps  172032 kbps 3556761][tx 5227132 pps  127488 kbps 4717971][Total Msgs_Rcvd 7053312]
+397228.330928 [HW]     I [o_du0][RX Timing][on time: 6667326, early  385986 late       0 corrupt       0, duplicated       0]
+397228.330930 [HW]     I [o_du0][pusch0  755712 prach0  125952]
+397228.330931 [HW]     I [o_du0][pusch1  755712 prach1  125952]
+397228.330943 [HW]     I [o_du0][pusch2  755712 prach2  125952]
+397228.330944 [HW]     I [o_du0][pusch3  755712 prach3  125952]
+397228.330945 [HW]     I [o_du0][drop errors       0 ecpri errors       0 cp errors       0 up errors       0 pusch errors       0 prach errors       0]
+397229.608076 [I] 1392498368: nr_pnf_p7_get_msgs: [P7:1] msgs ontime 581 thr DL 0.10 UL 0.00 msg late 0 (vtime)
+397229.610920 [HW]     I [o-du 0][rx 7225344 pps  172032 kbps 3556761][tx 5354620 pps  127488 kbps 4717971][Total Msgs_Rcvd 7225344]
+397229.610931 [HW]     I [o_du0][RX Timing][on time: 6829973, early  395371 late       0 corrupt       0, duplicated       0]
+397229.610932 [HW]     I [o_du0][pusch0  774144 prach0  129024]
+397229.610934 [HW]     I [o_du0][pusch1  774144 prach1  129024]
+397229.610935 [HW]     I [o_du0][pusch2  774144 prach2  129024]
+397229.610936 [HW]     I [o_du0][pusch3  774144 prach3  129024]
+397229.610938 [HW]     I [o_du0][drop errors       0 ecpri errors       0 cp errors       0 up errors       0 pusch errors       0 prach errors       0]
+397230.888087 [I] 1392498368: nr_pnf_p7_get_msgs: [P7:1] msgs ontime 683 thr DL 0.26 UL 0.03 msg late 0 (vtime)
+397230.890924 [HW]     I [o-du 0][rx 7397376 pps  172032 kbps 3556761][tx 5482108 pps  127488 kbps 4717971][Total Msgs_Rcvd 7397376]
+397230.890934 [HW]     I [o_du0][RX Timing][on time: 6992560, early  404816 late       0 corrupt       0, duplicated       0]
+397230.890936 [HW]     I [o_du0][pusch0  792576 prach0  132096]
+397230.890937 [HW]     I [o_du0][pusch1  792576 prach1  132096]
+397230.890939 [HW]     I [o_du0][pusch2  792576 prach2  132096]
+397230.890940 [HW]     I [o_du0][pusch3  792576 prach3  132096]
+397230.890941 [HW]     I [o_du0][drop errors       0 ecpri errors       0 cp errors       0 up errors       0 pusch errors       0 prach errors       0]
+397232.168069 [I] 1392498368: nr_pnf_p7_get_msgs: [P7:1] msgs ontime 581 thr DL 0.09 UL 0.00 msg late 0 (vtime)
+397232.170917 [HW]     I [o-du 0][rx 7569408 pps  172032 kbps 3556761][tx 5609596 pps  127488 kbps 4717971][Total Msgs_Rcvd 7569408]
+397232.170925 [HW]     I [o_du0][RX Timing][on time: 7155152, early  414256 late       0 corrupt       0, duplicated       0]
+397232.170927 [HW]     I [o_du0][pusch0  811008 prach0  135168]
+397232.170928 [HW]     I [o_du0][pusch1  811008 prach1  135168]
+397232.170939 [HW]     I [o_du0][pusch2  811008 prach2  135168]
+397232.170940 [HW]     I [o_du0][pusch3  811008 prach3  135168]
+397232.170941 [HW]     I [o_du0][drop errors       0 ecpri errors       0 cp errors       0 up errors       0 pusch errors       0 prach errors       0]
+397233.448074 [I] 1392498368: nr_pnf_p7_get_msgs: [P7:1] msgs ontime 587 thr DL 0.11 UL 0.00 msg late 0 (vtime)
+397233.450920 [HW]     I [o-du 0][rx 7741440 pps  172032 kbps 3556761][tx 5737084 pps  127488 kbps 4717971][Total Msgs_Rcvd 7741440]
+397233.450929 [HW]     I [o_du0][RX Timing][on time: 7317824, early  423616 late       0 corrupt       0, duplicated       0]
+397233.450930 [HW]     I [o_du0][pusch0  829440 prach0  138240]
+397233.450932 [HW]     I [o_du0][pusch1  829440 prach1  138240]
+397233.450941 [HW]     I [o_du0][pusch2  829440 prach2  138240]
+397233.450943 [HW]     I [o_du0][pusch3  829440 prach3  138240]
+397233.450944 [HW]     I [o_du0][drop errors       0 ecpri errors       0 cp errors       0 up errors       0 pusch errors       0 prach errors       0]
+397234.728076 [I] 1392498368: nr_pnf_p7_get_msgs: [P7:1] msgs ontime 577 thr DL 0.08 UL 0.00 msg late 0 (vtime)
+397234.730921 [HW]     I [o-du 0][rx 7913472 pps  172032 kbps 3556761][tx 5864572 pps  127488 kbps 4717971][Total Msgs_Rcvd 7913472]
+397234.730930 [HW]     I [o_du0][RX Timing][on time: 7480456, early  433016 late       0 corrupt       0, duplicated       0]
+397234.730933 [HW]     I [o_du0][pusch0  847872 prach0  141312]
+397234.730943 [HW]     I [o_du0][pusch1  847872 prach1  141312]
+397234.730944 [HW]     I [o_du0][pusch2  847872 prach2  141312]
+397234.730945 [HW]     I [o_du0][pusch3  847872 prach3  141312]
+397234.730946 [HW]     I [o_du0][drop errors       0 ecpri errors       0 cp errors       0 up errors       0 pusch errors       0 prach errors       0]
+397236.008079 [I] 1392498368: nr_pnf_p7_get_msgs: [P7:1] msgs ontime 593 thr DL 0.10 UL 0.00 msg late 0 (vtime)
+397236.010916 [HW]     I [o-du 0][rx 8085504 pps  172032 kbps 3556761][tx 5992060 pps  127488 kbps 4717971][Total Msgs_Rcvd 8085504]
+397236.010924 [HW]     I [o_du0][RX Timing][on time: 7643001, early  442503 late       0 corrupt       0, duplicated       0]
+397236.010927 [HW]     I [o_du0][pusch0  866304 prach0  144384]
+397236.010936 [HW]     I [o_du0][pusch1  866304 prach1  144384]
+397236.010938 [HW]     I [o_du0][pusch2  866304 prach2  144384]
+397236.010939 [HW]     I [o_du0][pusch3  866304 prach3  144384]
+397236.010940 [HW]     I [o_du0][drop errors       0 ecpri errors       0 cp errors       0 up errors       0 pusch errors       0 prach errors       0]
+397237.288073 [I] 1392498368: nr_pnf_p7_get_msgs: [P7:1] msgs ontime 588 thr DL 0.14 UL 0.00 msg late 0 (vtime)
+397237.290918 [HW]     I [o-du 0][rx 8257536 pps  172032 kbps 3556761][tx 6119548 pps  127488 kbps 4717971][Total Msgs_Rcvd 8257536]
+397237.290926 [HW]     I [o_du0][RX Timing][on time: 7805653, early  451883 late       0 corrupt       0, duplicated       0]
+397237.290929 [HW]     I [o_du0][pusch0  884736 prach0  147456]
+397237.290930 [HW]     I [o_du0][pusch1  884736 prach1  147456]
+397237.290932 [HW]     I [o_du0][pusch2  884736 prach2  147456]
+397237.290933 [HW]     I [o_du0][pusch3  884736 prach3  147456]
+397237.290934 [HW]     I [o_du0][drop errors       0 ecpri errors       0 cp errors       0 up errors       0 pusch errors       0 prach errors       0]
+397237.300713 [PHY]    I prach_I0 = 19.8 dB
+397238.568073 [I] 1392498368: nr_pnf_p7_get_msgs: [P7:1] msgs ontime 584 thr DL 0.10 UL 0.00 msg late 0 (vtime)
+397238.570921 [HW]     I [o-du 0][rx 8429568 pps  172032 kbps 3556761][tx 6247036 pps  127488 kbps 4717971][Total Msgs_Rcvd 8429568]
+397238.570928 [HW]     I [o_du0][RX Timing][on time: 7968279, early  461289 late       0 corrupt       0, duplicated       0]
+397238.570931 [HW]     I [o_du0][pusch0  903168 prach0  150528]
+397238.570933 [HW]     I [o_du0][pusch1  903168 prach1  150528]
+397238.570934 [HW]     I [o_du0][pusch2  903168 prach2  150528]
+397238.570935 [HW]     I [o_du0][pusch3  903168 prach3  150528]
+397238.570937 [HW]     I [o_du0][drop errors       0 ecpri errors       0 cp errors       0 up errors       0 pusch errors       0 prach errors       0]
+397239.848077 [I] 1392498368: nr_pnf_p7_get_msgs: [P7:1] msgs ontime 587 thr DL 0.10 UL 0.00 msg late 0 (vtime)
+397239.850923 [HW]     I [o-du 0][rx 8601600 pps  172032 kbps 3556761][tx 6374524 pps  127488 kbps 4717971][Total Msgs_Rcvd 8601600]
+397239.850931 [HW]     I [o_du0][RX Timing][on time: 8130906, early  470694 late       0 corrupt       0, duplicated       0]
+397239.850933 [HW]     I [o_du0][pusch0  921600 prach0  153600]
+397239.850934 [HW]     I [o_du0][pusch1  921600 prach1  153600]
+397239.850944 [HW]     I [o_du0][pusch2  921600 prach2  153600]
+397239.850945 [HW]     I [o_du0][pusch3  921600 prach3  153600]
+397239.850946 [HW]     I [o_du0][drop errors       0 ecpri errors       0 cp errors       0 up errors       0 pusch errors       0 prach errors       0]
+397241.128069 [I] 1392498368: nr_pnf_p7_get_msgs: [P7:1] msgs ontime 594 thr DL 0.12 UL 0.00 msg late 0 (vtime)
+397241.130917 [HW]     I [o-du 0][rx 8773632 pps  172032 kbps 3556761][tx 6502012 pps  127488 kbps 4717971][Total Msgs_Rcvd 8773632]
+397241.130925 [HW]     I [o_du0][RX Timing][on time: 8293469, early  480163 late       0 corrupt       0, duplicated       0]
+397241.130928 [HW]     I [o_du0][pusch0  940032 prach0  156672]
+397241.130937 [HW]     I [o_du0][pusch1  940032 prach1  156672]
+397241.130939 [HW]     I [o_du0][pusch2  940032 prach2  156672]
+397241.130940 [HW]     I [o_du0][pusch3  940032 prach3  156672]
+397241.130941 [HW]     I [o_du0][drop errors       0 ecpri errors       0 cp errors       0 up errors       0 pusch errors       0 prach errors       0]
+397242.408075 [I] 1392498368: nr_pnf_p7_get_msgs: [P7:1] msgs ontime 580 thr DL 0.09 UL 0.00 msg late 0 (vtime)
+397242.410919 [HW]     I [o-du 0][rx 8945664 pps  172032 kbps 3556761][tx 6629500 pps  127488 kbps 4717971][Total Msgs_Rcvd 8945664]
+397242.410929 [HW]     I [o_du0][RX Timing][on time: 8456095, early  489569 late       0 corrupt       0, duplicated       0]
+397242.410930 [HW]     I [o_du0][pusch0  958464 prach0  159744]
+397242.410932 [HW]     I [o_du0][pusch1  958464 prach1  159744]
+397242.410941 [HW]     I [o_du0][pusch2  958464 prach2  159744]
+397242.410943 [HW]     I [o_du0][pusch3  958464 prach3  159744]
+397242.410944 [HW]     I [o_du0][drop errors       0 ecpri errors       0 cp errors       0 up errors       0 pusch errors       0 prach errors       0]
+397243.688076 [I] 1392498368: nr_pnf_p7_get_msgs: [P7:1] msgs ontime 579 thr DL 0.07 UL 0.00 msg late 0 (vtime)
+397243.690922 [HW]     I [o-du 0][rx 9117696 pps  172032 kbps 3556761][tx 6756988 pps  127488 kbps 4717971][Total Msgs_Rcvd 9117696]
+397243.690931 [HW]     I [o_du0][RX Timing][on time: 8618809, early  498887 late       0 corrupt       0, duplicated       0]
+397243.690933 [HW]     I [o_du0][pusch0  976896 prach0  162816]
+397243.690934 [HW]     I [o_du0][pusch1  976896 prach1  162816]
+397243.690944 [HW]     I [o_du0][pusch2  976896 prach2  162816]
+397243.690946 [HW]     I [o_du0][pusch3  976896 prach3  162816]
+397243.690947 [HW]     I [o_du0][drop errors       0 ecpri errors       0 cp errors       0 up errors       0 pusch errors       0 prach errors       0]
+397244.968079 [I] 1392498368: nr_pnf_p7_get_msgs: [P7:1] msgs ontime 577 thr DL 0.07 UL 0.00 msg late 0 (vtime)
+397244.970923 [HW]     I [o-du 0][rx 9289728 pps  172032 kbps 3556761][tx 6884476 pps  127488 kbps 4717971][Total Msgs_Rcvd 9289728]
+397244.970931 [HW]     I [o_du0][RX Timing][on time: 8781352, early  508376 late       0 corrupt       0, duplicated       0]
+397244.970933 [HW]     I [o_du0][pusch0  995328 prach0  165888]
+397244.970935 [HW]     I [o_du0][pusch1  995328 prach1  165888]
+397244.970943 [HW]     I [o_du0][pusch2  995328 prach2  165888]
+397244.970945 [HW]     I [o_du0][pusch3  995328 prach3  165888]
+397244.970946 [HW]     I [o_du0][drop errors       0 ecpri errors       0 cp errors       0 up errors       0 pusch errors       0 prach errors       0]
+397246.248090 [I] 1392498368: nr_pnf_p7_get_msgs: [P7:1] msgs ontime 1479 thr DL 100.45 UL 0.02 msg late 0 (vtime)
+397246.250918 [HW]     I [o-du 0][rx 9461760 pps  172032 kbps 3556761][tx 7011964 pps  127488 kbps 4717971][Total Msgs_Rcvd 9461760]
+397246.250926 [HW]     I [o_du0][RX Timing][on time: 8943981, early  517779 late       0 corrupt       0, duplicated       0]
+397246.250928 [HW]     I [o_du0][pusch0 1013760 prach0  168960]
+397246.250929 [HW]     I [o_du0][pusch1 1013760 prach1  168960]
+397246.250933 [HW]     I [o_du0][pusch2 1013760 prach2  168960]
+397246.250935 [HW]     I [o_du0][pusch3 1013760 prach3  168960]
+397246.250936 [HW]     I [o_du0][drop errors       0 ecpri errors       0 cp errors       0 up errors       0 pusch errors       0 prach errors       0]
+397247.528092 [I] 1392498368: nr_pnf_p7_get_msgs: [P7:1] msgs ontime 5205 thr DL 532.17 UL 0.03 msg late 0 (vtime)
+397247.530922 [HW]     I [o-du 0][rx 9633792 pps  172032 kbps 3556761][tx 7139452 pps  127488 kbps 4717971][Total Msgs_Rcvd 9633792]
+397247.530933 [HW]     I [o_du0][RX Timing][on time: 9106615, early  527177 late       0 corrupt       0, duplicated       0]
+397247.530936 [HW]     I [o_du0][pusch0 1032192 prach0  172032]
+397247.530937 [HW]     I [o_du0][pusch1 1032192 prach1  172032]
+397247.530939 [HW]     I [o_du0][pusch2 1032192 prach2  172032]
+397247.530940 [HW]     I [o_du0][pusch3 1032192 prach3  172032]
+397247.530941 [HW]     I [o_du0][drop errors       0 ecpri errors       0 cp errors       0 up errors       0 pusch errors       0 prach errors       0]
+397247.540734 [PHY]    I prach_I0 = 19.8 dB
+397248.808099 [I] 1392498368: nr_pnf_p7_get_msgs: [P7:1] msgs ontime 5221 thr DL 531.17 UL 0.09 msg late 0 (vtime)
+397248.810923 [HW]     I [o-du 0][rx 9805824 pps  172032 kbps 3556761][tx 7266940 pps  127488 kbps 4717971][Total Msgs_Rcvd 9805824]
+397248.810933 [HW]     I [o_du0][RX Timing][on time: 9269234, early  536590 late       0 corrupt       0, duplicated       0]
+397248.810935 [HW]     I [o_du0][pusch0 1050624 prach0  175104]
+397248.810937 [HW]     I [o_du0][pusch1 1050624 prach1  175104]
+397248.810939 [HW]     I [o_du0][pusch2 1050624 prach2  175104]
+397248.810940 [HW]     I [o_du0][pusch3 1050624 prach3  175104]
+397248.810941 [HW]     I [o_du0][drop errors       0 ecpri errors       0 cp errors       0 up errors       0 pusch errors       0 prach errors       0]
+397250.088092 [I] 1392498368: nr_pnf_p7_get_msgs: [P7:1] msgs ontime 5252 thr DL 530.84 UL 0.09 msg late 0 (vtime)
+397250.090917 [HW]     I [o-du 0][rx 9977856 pps  172032 kbps 3556761][tx 7394428 pps  127488 kbps 4717971][Total Msgs_Rcvd 9977856]
+397250.090928 [HW]     I [o_du0][RX Timing][on time: 9431761, early  546095 late       0 corrupt       0, duplicated       0]
+397250.090930 [HW]     I [o_du0][pusch0 1069056 prach0  178176]
+397250.090935 [HW]     I [o_du0][pusch1 1069056 prach1  178176]
+397250.090937 [HW]     I [o_du0][pusch2 1069056 prach2  178176]
+397250.090938 [HW]     I [o_du0][pusch3 1069056 prach3  178176]
+397250.090939 [HW]     I [o_du0][drop errors       0 ecpri errors       0 cp errors       0 up errors       0 pusch errors       0 prach errors       0]
+397251.368093 [I] 1392498368: nr_pnf_p7_get_msgs: [P7:1] msgs ontime 5230 thr DL 527.80 UL 0.10 msg late 0 (vtime)
+397251.370919 [HW]     I [o-du 0][rx 10149888 pps  172032 kbps 3556761][tx 7521916 pps  127488 kbps 4717971][Total Msgs_Rcvd 10149888]
+397251.370928 [HW]     I [o_du0][RX Timing][on time: 9594416, early  555472 late       0 corrupt       0, duplicated       0]
+397251.370931 [HW]     I [o_du0][pusch0 1087488 prach0  181248]
+397251.370932 [HW]     I [o_du0][pusch1 1087488 prach1  181248]
+397251.370934 [HW]     I [o_du0][pusch2 1087488 prach2  181248]
+397251.370935 [HW]     I [o_du0][pusch3 1087488 prach3  181248]
+397251.370936 [HW]     I [o_du0][drop errors       0 ecpri errors       0 cp errors       0 up errors       0 pusch errors       0 prach errors       0]
+397252.648093 [I] 1392498368: nr_pnf_p7_get_msgs: [P7:1] msgs ontime 5234 thr DL 532.13 UL 0.09 msg late 0 (vtime)
+397252.650921 [HW]     I [o-du 0][rx 10321920 pps  172032 kbps 3556761][tx 7649404 pps  127488 kbps 4717971][Total Msgs_Rcvd 10321920]
+397252.650931 [HW]     I [o_du0][RX Timing][on time: 9757043, early  564877 late       0 corrupt       0, duplicated       0]
+397252.650934 [HW]     I [o_du0][pusch0 1105920 prach0  184320]
+397252.650935 [HW]     I [o_du0][pusch1 1105920 prach1  184320]
+397252.650947 [HW]     I [o_du0][pusch2 1105920 prach2  184320]
+397252.650948 [HW]     I [o_du0][pusch3 1105920 prach3  184320]
+397252.650949 [HW]     I [o_du0][drop errors       0 ecpri errors       0 cp errors       0 up errors       0 pusch errors       0 prach errors       0]
+397253.928094 [I] 1392498368: nr_pnf_p7_get_msgs: [P7:1] msgs ontime 5218 thr DL 528.87 UL 0.09 msg late 0 (vtime)
+397253.930923 [HW]     I [o-du 0][rx 10493952 pps  172032 kbps 3556761][tx 7776892 pps  127488 kbps 4717971][Total Msgs_Rcvd 10493952]
+397253.930933 [HW]     I [o_du0][RX Timing][on time: 9919638, early  574314 late       0 corrupt       0, duplicated       0]
+397253.930935 [HW]     I [o_du0][pusch0 1124352 prach0  187392]
+397253.930936 [HW]     I [o_du0][pusch1 1124352 prach1  187392]
+397253.930938 [HW]     I [o_du0][pusch2 1124352 prach2  187392]
+397253.930939 [HW]     I [o_du0][pusch3 1124352 prach3  187392]
+397253.930940 [HW]     I [o_du0][drop errors       0 ecpri errors       0 cp errors       0 up errors       0 pusch errors       0 prach errors       0]
+397255.208095 [I] 1392498368: nr_pnf_p7_get_msgs: [P7:1] msgs ontime 5249 thr DL 532.07 UL 0.10 msg late 0 (vtime)
+397255.210918 [HW]     I [o-du 0][rx 10665984 pps  172032 kbps 3556761][tx 7904380 pps  127488 kbps 4717971][Total Msgs_Rcvd 10665984]
+397255.210929 [HW]     I [o_du0][RX Timing][on time: 10082251, early  583733 late       0 corrupt       0, duplicated       0]
+397255.210932 [HW]     I [o_du0][pusch0 1142784 prach0  190464]
+397255.210944 [HW]     I [o_du0][pusch1 1142784 prach1  190464]
+397255.210945 [HW]     I [o_du0][pusch2 1142784 prach2  190464]
+397255.210946 [HW]     I [o_du0][pusch3 1142784 prach3  190464]
+397255.210947 [HW]     I [o_du0][drop errors       0 ecpri errors       0 cp errors       0 up errors       0 pusch errors       0 prach errors       0]

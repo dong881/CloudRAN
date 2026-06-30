@@ -1,0 +1,26 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: host-debug-pod
+  namespace: ming-ns
+spec:
+  nodeName: lavoisier
+  hostNetwork: true
+  containers:
+  - name: debug
+    image: bmw.ece.ntust.edu.tw/minghong/oai-gnb:latest
+    command: ["sleep", "3600"]
+    securityContext:
+      privileged: true
+    volumeMounts:
+    - name: host-root
+      mountPath: /host
+  volumes:
+  - name: host-root
+    hostPath:
+      path: /
+  tolerations:
+  - key: "dedicated"
+    operator: "Equal"
+    value: "5g-radio"
+    effect: "NoSchedule"
