@@ -78,3 +78,12 @@ helm uninstall vnf pnf
 helm install vnf ./oai-vnf
 helm install pnf ./oai-pnf
 ```
+
+### Q3: Pod 卡在 `Terminating` 狀態無法關閉
+如果執行 `helm uninstall` 後，Pod 長時間處於 `Terminating` 狀態，代表 DPDK 記憶體/PCI 資源未正常釋放或 Multus 網路介面移除發生死鎖。
+*   **解決方式：**
+    使用 `--force --grace-period=0` 來強制刪除 Pod：
+    ```bash
+    kubectl delete pod <pod-name> -n ming-ns --grace-period=0 --force
+    ```
+
