@@ -1,0 +1,3 @@
+nodeName: hpe-ProLiant-DL380-Gen10
+config:
+  execWrapper: "taskset -c 8-15,40-47"
