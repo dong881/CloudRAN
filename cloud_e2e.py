@@ -1,3 +1,4 @@
+
 #!/usr/bin/env python3
 from __future__ import annotations
 
@@ -36,6 +37,18 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--uplink", action="store_true", help="Run UE uplink instead of downlink reverse mode")
     parser.add_argument("--ue-model", choices=["samsung", "mtk"], default="samsung")
     parser.add_argument("--iperf-bind", default="10.45.0.1", help="Local UPF/ogstun address for iperf3 server")
+    parser.add_argument(
+        "--settle-time",
+        type=int,
+        default=30,
+        help="Seconds to wait after pods are ready before triggering UE attach",
+    )
+    parser.add_argument("--attach-timeout", type=int, default=180, help="Seconds to wait for UE 10.45.x.x attach")
+    parser.add_argument(
+        "--keep-ue-online-on-failure",
+        action="store_true",
+        help="Do not toggle airplane mode ON if attach/iperf fails",
+    )
     return parser.parse_args()
 
 
@@ -98,11 +111,16 @@ def stop_iperf_server(iperf_srv: subprocess.Popen[str] | None) -> tuple[str, str
 def main() -> None:
     args = parse_args()
     iperf_srv: subprocess.Popen[str] | None = None
+    success = False
 
     try:
         # 1. Check K8s Pods status
         if not check_k8s_pods():
             sys.exit(1)
+
+        if args.settle_time > 0:
+            print(f"   > Waiting {args.settle_time}s for O-Cloud gNB/RU path to settle before UE attach...")
+            time.sleep(args.settle_time)
 
         # 2. Make UE Driver and bring UE online
         print(f"[2/6] Initializing {args.ue_model.upper()} UE...")
@@ -113,8 +131,11 @@ def main() -> None:
             sys.exit(1)
 
         print("   > Ensuring UE is online and has obtained 10.45.x.x IP...")
-        if not driver.ensure_online(timeout=120):
-            print("[ERROR] Failed to bring UE online. IP not obtained.")
+        if not driver.ensure_online(timeout=args.attach_timeout):
+            print(
+                "[ERROR] Failed to bring UE online. IP not obtained. "
+                "iPerf was not started because the UE did not attach."
+            )
             sys.exit(1)
 
         ue_ip = driver.get_ip()
@@ -198,11 +219,15 @@ def main() -> None:
         )
 
         print(f"[FINISHED] All steps completed! Logs are saved in directory: {log_dir}")
+        success = True
     finally:
         stop_iperf_server(iperf_srv)
         if "driver" in locals():
-            print("\n[6/6] Toggling Airplane Mode ON to save UE battery...")
-            driver.airplane("on")
+            if not success and args.keep_ue_online_on_failure:
+                print("\n[6/6] Leaving UE airplane mode unchanged for failure inspection.")
+            else:
+                print("\n[6/6] Toggling Airplane Mode ON to save UE battery...")
+                driver.airplane("on")
 
 
 if __name__ == "__main__":
