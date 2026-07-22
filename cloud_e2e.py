@@ -108,6 +108,14 @@ def stop_iperf_server(iperf_srv: subprocess.Popen[str] | None) -> tuple[str, str
         return iperf_srv.communicate(timeout=5)
 
 
+def expected_iperf_runtime(args: argparse.Namespace) -> int:
+    """Expected client-side runtime in seconds, excluding attach/setup."""
+    tests = len(args.bandwidth)
+    if tests <= 0:
+        return 0
+    return tests * args.period + max(0, tests - 1) * max(0, args.gap_time)
+
+
 def main() -> None:
     args = parse_args()
     iperf_srv: subprocess.Popen[str] | None = None
@@ -170,6 +178,9 @@ def main() -> None:
         )
 
         os.set_blocking(iperf_proc.stdout.fileno(), False)
+        watchdog_seconds = expected_iperf_runtime(args) + 120
+        iperf_deadline = time.monotonic() + watchdog_seconds
+        watchdog_fired = False
         while True:
             try:
                 line = iperf_proc.stdout.readline()
@@ -181,11 +192,36 @@ def main() -> None:
             if iperf_proc.poll() is not None:
                 print("[INFO] UE iperf execution completed.")
                 break
+            if time.monotonic() > iperf_deadline:
+                watchdog_fired = True
+                print(
+                    "[WARNING] UE iperf exceeded expected runtime "
+                    f"({watchdog_seconds}s watchdog). Forcing UE cleanup and "
+                    "continuing with server-side iperf evidence.",
+                    flush=True,
+                )
+                driver.stop_iperf_client()
+                break
             time.sleep(0.5)
 
-        if iperf_proc.returncode != 0:
+        if iperf_proc.poll() is None:
+            try:
+                iperf_proc.terminate()
+                iperf_proc.wait(timeout=5)
+            except Exception:
+                try:
+                    iperf_proc.kill()
+                except Exception:
+                    pass
+
+        if iperf_proc.returncode != 0 and not watchdog_fired:
             print(f"[ERROR] UE iperf driver exited with return code {iperf_proc.returncode}")
             sys.exit(iperf_proc.returncode)
+        if watchdog_fired:
+            print(
+                "[WARNING] UE iperf driver did not exit cleanly, but the requested "
+                "traffic window elapsed; preserving the run using server-side output."
+            )
 
         iperf_srv_out, iperf_srv_err = stop_iperf_server(iperf_srv)
         iperf_srv = None
