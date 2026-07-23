@@ -16,8 +16,9 @@ spec:
       labels:
         {{- include "oai-gnb.selectorLabels" . | nindent 8 }}
         app: oai-gnb
-    {{- if or .Values.multus.nfapiInterface.create .Values.multus.ruInterface.create }}
       annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
+      {{- if or .Values.multus.nfapiInterface.create .Values.multus.ruInterface.create }}
         cpu-quota.crio.io: "disable"
         k8s.v1.cni.cncf.io/networks: |
           [
@@ -36,7 +37,7 @@ spec:
             }
           {{- end }}
           ]
-    {{- end }}
+      {{- end }}
     spec:
       securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
@@ -120,19 +121,39 @@ spec:
             sed -e ${E} $CONF | tee /tmp/du.conf;
             ulimit -l unlimited;
             ip link set dev eth0 mtu 9216;
-            for f in /home/oai72_su/oai_mp_f_ming/dpdk_libs/*.so*; do ln -sf "$f" /usr/local/lib/; done;
-            for f in /home/oai72_su/oai_mp_f_ming/dpdk_libs/dpdk/pmds-21.0/*.so*; do ln -sf "$f" /usr/local/lib/; done;
-            for f in /home/oai72_su/oai_mp_f_ming/openairinterface5g/cmake_targets/ran_build/build/*.so*; do ln -sf "$f" /usr/local/lib/; done;
-            ln -sf /home/oai72_su/oai_mp_f_ming/phy/fhi_lib/lib/build/libxran.so /usr/local/lib/libxran.so;
-            ln -sf /home/oai72_su/oai_mp_f_ming/libconfig.so.11 /usr/local/lib/libconfig.so.11;
-            export DPDK_PMD_PATH=/home/oai72_su/oai_mp_f_ming/dpdk_libs/dpdk/pmds-21.0;
-            ldconfig;
+            OAI_BUILD_ROOT={{ .Values.config.oaiBuildRoot | quote }};
+            OAI_BUILD_DIR="${OAI_BUILD_ROOT}/openairinterface5g/cmake_targets/ran_build/build";
+            DPDK_LIB_DIR={{ .Values.config.dpdkLibDir | quote }};
+            DPDK_DRIVER_DIR={{ .Values.config.dpdkDriverDir | quote }};
+            DPDK_PRELOAD_LIBS={{ .Values.config.dpdkPreloadLibraries | quote }};
+            FHI_LIB_DIR={{ .Values.config.fhiLibDir | quote }};
+            for dir in "$OAI_BUILD_DIR" "$DPDK_LIB_DIR" "$DPDK_DRIVER_DIR" "$FHI_LIB_DIR"; do
+              if [[ ! -d "$dir" ]]; then
+                echo "Required host library directory does not exist: $dir" >&2;
+                exit 1;
+              fi;
+            done;
+            export LD_LIBRARY_PATH="${DPDK_LIB_DIR}:${DPDK_DRIVER_DIR}:${OAI_BUILD_DIR}:${FHI_LIB_DIR}:${OAI_BUILD_ROOT}:${LD_LIBRARY_PATH:-}";
+            DPDK_PRELOAD_PATHS=();
+            for lib in $DPDK_PRELOAD_LIBS; do
+              path="${DPDK_DRIVER_DIR}/${lib}";
+              if [[ ! -f "$path" ]]; then
+                echo "Required DPDK plugin does not exist: $path" >&2;
+                exit 1;
+              fi;
+              DPDK_PRELOAD_PATHS+=("$path");
+            done;
+            export LD_PRELOAD="$(IFS=:; echo "${DPDK_PRELOAD_PATHS[*]}")${LD_PRELOAD:+:${LD_PRELOAD}}";
+            if missing=$(ldd "${OAI_BUILD_DIR}/liboai_transpro.so" | awk '/not found/{print $1}'); [[ -n "$missing" ]]; then
+              echo "Missing liboai_transpro dependencies: $missing" >&2;
+              exit 1;
+            fi;
             {{- if .Values.persistence.enabled }}
             LOG_FILE="/var/log/oai/pnf-$(date +%Y%m%d_%H%M%S).log";
             mkdir -p /var/log/oai;
-            exec /home/oai72_su/oai_mp_f_ming/openairinterface5g/cmake_targets/ran_build/build/nr-softmodem -O /tmp/du.conf $USE_ADDITIONAL_OPTIONS 2>&1 | tee -a "${LOG_FILE}";
+            exec "${OAI_BUILD_DIR}/nr-softmodem" -O /tmp/du.conf $USE_ADDITIONAL_OPTIONS 2>&1 | tee -a "${LOG_FILE}";
             {{- else }}
-            exec /home/oai72_su/oai_mp_f_ming/openairinterface5g/cmake_targets/ran_build/build/nr-softmodem -O /tmp/du.conf $USE_ADDITIONAL_OPTIONS;
+            exec "${OAI_BUILD_DIR}/nr-softmodem" -O /tmp/du.conf $USE_ADDITIONAL_OPTIONS;
             {{- end }}
         {{- else}}
         command:

@@ -58,13 +58,14 @@ data:
     };
 
     fhi_72 = {
-      dpdk_devices = ("@C_PLANE_PCI_ADD@", "@U_PLANE_PCI_ADD@"); # one VF can be used as well
+      # xRAN maps even VF indexes to U-plane and odd VF indexes to C-plane.
+      dpdk_devices = ("@U_PLANE_PCI_ADD@", "@C_PLANE_PCI_ADD@"); # one VF can be used as well
       dpdk_iova_mode = "{{ .Values.fhi72.dpdk_iova_mode }}";
       file_prefix = "{{ .Values.fhi72.file_prefix }}";
       system_core = @SYSTEM_CORE@;
       io_core = @IO_CORE@;
       worker_cores = (@WORKER_CORE_0@);
-      ru_addr = ("{{ .Values.config.ruCPlaneMacAdd }}", "{{ .Values.config.ruUPlaneMacAdd }}");
+      ru_addr = ("{{ .Values.config.ruUPlaneMacAdd }}", "{{ .Values.config.ruCPlaneMacAdd }}");
       mtu = {{ .Values.multus.ruInterface.mtu }}; # note: 1500 works as well, with both E and F releases
       fh_config = ({
         T1a_cp_dl = (285, 470);
@@ -81,4 +82,3 @@ data:
         };
       });
     };
-

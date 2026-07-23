@@ -127,6 +127,11 @@ For Ubuntu you can pull the image from docker-hub --> https://hub.docker.com/r/a
 |multus.n3Interface.Gateway      |Ip-Address                     |                                                |
 |multus.n3Interface.hostInterface|host interface                 |Host interface of the machine where pod will run|
 |multus.n3Interface.routes       |Json                           |Routes you want to add in the pod               |
+|config.oaiBuildRoot             |Absolute host path             |OAI workspace root mounted from the PNF node    |
+|config.dpdkLibDir               |Absolute host path             |DPDK shared library directory; ABI must match OAI|
+|config.dpdkDriverDir            |Absolute host path             |DPDK shared PMD/plugin directory                |
+|config.dpdkPreloadLibraries     |Space-separated library names  |Shared DPDK plugins preloaded before OAI starts |
+|config.fhiLibDir                |Absolute host path             |Directory containing the compatible `libxran.so`|
 
 
 These fields depends on the O-RU and Kubernetes distribution. The `ruInterface.sriovNetworkNamespace` will change with Kubernetes distribution.
@@ -148,6 +153,28 @@ The config parameters mentioned in `config` block of `values.yaml` are limited o
 There are certain fields in `templates/configmap.yaml` with `@CONFIG_VALUE@` these fields are very important to configure the CPU threads, mac addresses and PLMN. Apart from these fields you can change any parameter. 
 
 The charts are configured to be used with primary CNI of Kubernetes. When you will mount the configuration file you have to define static ip-addresses for N2, N3 and RU. Most of the primary CNIs do not allow static ip-address allocation. To overcome this we are using multus-cni with static ip-address allocation. 
+
+## Lavoisier host-library requirements
+
+This chart runs the host-built `nr-softmodem` and loads host OAI, DPDK and xRAN libraries. The container startup validates every configured directory, explicitly preloads the shared DPDK ring/PCI/iavf plugins, and checks `liboai_transpro.so` with `ldd`. A missing or ABI-incompatible dependency therefore fails at startup instead of producing a partially working PNF.
+
+Keep the following invariants when changing the build or server:
+
+1. `liboai_transpro.so`, DPDK shared libraries and `libxran.so` must use compatible ABIs.
+2. xRAN K release expects the U-plane VF/MAC first and the C-plane VF/MAC second. Do not reverse `dpdk_devices` or `ru_addr`.
+3. The xRAN EAL allowlist must be generated from `io_cfg->dpdk_dev[0]`; a hard-coded PCI address can make EAL initialize without the assigned SR-IOV VF. This fix is commit `aa4ba67664b8` on branch `oran_k_release_v1.0-fix` in `/home/oai72_su/oai_mp_f_ming/phy_k`.
+4. A ConfigMap checksum is part of the Deployment Pod template, so use `helm upgrade` after configuration changes and wait for the rollout.
+
+The Pegatron O-RU can emit repeated, byte-identical PRACH packets. The required OAI-side fix is commit `2945a5177273` on branch `nfapi-DelayManagement-BMW`, in `radio/fhi_72/oaioran.c`. It deduplicates only packets whose RB metadata, section ID and payload are all identical; non-identical multi-packet PRACH remains unsupported and fails explicitly.
+
+Rebuild the OAI fronthaul library after changing or restoring that source:
+
+```bash
+cd /home/oai72_su/oai_mp_f_ming/openairinterface5g/cmake_targets/ran_build/build
+sudo ninja oran_fhlib_5g
+```
+
+For the complete incident symptoms, recovery order and health checks, see the repository-level [README](../README.md).
 
 ## Advanced Debugging Parameters
 
@@ -212,10 +239,14 @@ resources:
 
 ## How to use
 
-1. Check the networking, config parameters of the file in `templates/configmap.yaml`. Once the GNB is configured.
+1. Check the networking, host-library parameters and configuration in `templates/configmap.yaml`.
+2. Install and wait for VNF first. Start PNF only after VNF is ready, otherwise P5 may reconnect without a working P7 timing path.
 
 ```bash
-helm install oai-gnb .
+helm upgrade --install vnf ../oai-vnf --kube-context ming-context -n ming-ns
+kubectl --context ming-context -n ming-ns rollout status deployment/oai-vnf --timeout=180s
+helm upgrade --install pnf . --kube-context ming-context -n ming-ns
+kubectl --context ming-context -n ming-ns rollout status deployment/oai-pnf-pegatron --timeout=240s
 ```
 
 

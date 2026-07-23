@@ -68,6 +68,15 @@ multus:
 config:
   timeZone: "Asia/Taipei"
   useAdditionalOptions: "--nfapi PNF --log_config.global_log_options level,nocolor,time"
+  # Host-built OAI/DPDK paths mounted from /home/oai72_su on the Lavoisier node.
+  # Keep these aligned with the DPDK ABI used to build liboai_transpro.so.
+  oaiBuildRoot: "/home/oai72_su/oai_mp_f_ming"
+  dpdkLibDir: "/home/oai72_su/dpdk-stable-22.11.11/build/lib"
+  dpdkDriverDir: "/home/oai72_su/dpdk-stable-22.11.11/build/drivers"
+  # DPDK was built as shared libraries, so these plugins must be loaded
+  # explicitly before nr-softmodem starts.
+  dpdkPreloadLibraries: "librte_mempool_ring.so.23 librte_bus_pci.so.23 librte_net_iavf.so.23"
+  fhiLibDir: "/home/oai72_su/oai_mp_f_ming/phy_k/fhi_lib/lib/build"
   gnbName: "oai-gnb-00"
   mcc: "001"   # check the information with AMF, SMF, UPF
   mnc: "01"    # check the information with AMF, SMF, UPF

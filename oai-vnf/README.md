@@ -212,11 +212,16 @@ resources:
 
 ## How to use
 
-1. Check the networking, config parameters of the file in `templates/configmap.yaml`. Once the GNB is configured.
+1. Check the networking and configuration in `templates/configmap.yaml`.
+2. Always start and wait for VNF before starting PNF. This allows the P5 listener and autonomous P7 timing thread to initialize before the PNF connects.
 
 ```bash
-helm install oai-gnb .
+helm upgrade --install vnf . --kube-context ming-context -n ming-ns
+kubectl --context ming-context -n ming-ns rollout status deployment/oai-vnf --timeout=180s
+helm upgrade --install pnf ../oai-pnf --kube-context ming-context -n ming-ns
 ```
+
+If P5 SCTP reconnects but P7 UDP/timing does not recover, stop PNF, restart and wait for VNF, then start PNF again. The complete recovery and validation procedure is documented in the repository-level [README](../README.md).
 
 
 ## Note
