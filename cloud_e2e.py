@@ -5,6 +5,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import re
 import subprocess
 import sys
 import time
@@ -231,6 +232,16 @@ def main() -> None:
             print(iperf_srv_out)
         if iperf_srv_err.strip():
             print(iperf_srv_err)
+        iperf_server_text = "\n".join([iperf_srv_out or "", iperf_srv_err or ""])
+        accepted_connection = "Accepted connection" in iperf_server_text
+        has_interval_samples = re.search(r"\[\s*\d+\]\s+[0-9.]+-[0-9.]+\s+sec\s+.+?\s+[0-9.]+\s+Mbits/sec", iperf_server_text)
+        if not accepted_connection or not has_interval_samples:
+            print(
+                "[ERROR] iperf server did not observe a valid UE traffic session. "
+                "UE may have a 10.45.x.x address but no working user-plane path to 10.45.0.1:5201."
+            )
+            sys.exit(1)
+
         print("[SUCCESS] End-to-End UE iperf execution completed successfully!")
 
         # 5. Collect Logs
