@@ -46,6 +46,11 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument("--attach-timeout", type=int, default=180, help="Seconds to wait for UE 10.45.x.x attach")
     parser.add_argument(
+        "--preserve-ue-state",
+        action="store_true",
+        help="Require an existing UE 10.45.x.x address; never toggle airplane mode",
+    )
+    parser.add_argument(
         "--keep-ue-online-on-failure",
         action="store_true",
         help="Do not toggle airplane mode ON if attach/iperf fails",
@@ -140,15 +145,24 @@ def main() -> None:
             sys.exit(1)
 
         print("   > Ensuring UE is online and has obtained 10.45.x.x IP...")
-        if not driver.ensure_online(timeout=args.attach_timeout):
-            print(
-                "[ERROR] Failed to bring UE online. IP not obtained. "
-                "iPerf was not started because the UE did not attach."
-            )
-            sys.exit(1)
-
-        ue_ip = driver.get_ip()
-        print(f"[SUCCESS] UE is online with IP: {ue_ip}")
+        if args.preserve_ue_state:
+            ue_ip = driver.get_ip()
+            if not ue_ip:
+                print(
+                    "[ERROR] Preserve-UE mode requires an existing 10.45.x.x address. "
+                    "No airplane-mode recovery was attempted."
+                )
+                sys.exit(1)
+            print(f"[SUCCESS] UE already online with IP: {ue_ip} (preserve-UE mode)")
+        else:
+            if not driver.ensure_online(timeout=args.attach_timeout):
+                print(
+                    "[ERROR] Failed to bring UE online. IP not obtained. "
+                    "iPerf was not started because the UE did not attach."
+                )
+                sys.exit(1)
+            ue_ip = driver.get_ip()
+            print(f"[SUCCESS] UE is online with IP: {ue_ip}")
 
         # 3. Start local iperf3 server on UPF/ogstun.
         print(f"[3/6] Starting iperf3 server locally on ogstun ({args.iperf_bind})...")
@@ -270,7 +284,7 @@ def main() -> None:
     finally:
         stop_iperf_server(iperf_srv)
         if "driver" in locals():
-            if not success and args.keep_ue_online_on_failure:
+            if args.preserve_ue_state or (not success and args.keep_ue_online_on_failure):
                 print("\n[6/6] Leaving UE airplane mode unchanged for failure inspection.")
             else:
                 print("\n[6/6] Toggling Airplane Mode ON to save UE battery...")
