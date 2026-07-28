@@ -4,9 +4,12 @@ kubernetesDistribution: Vanilla  #Vanilla for community kubernetes distribution 
 ## To know more about them follow this tutorial https://gitlab.eurecom.fr/oai/cn5g/oai-cn5g-fed/-/tree/master/openshift
 nfimage:
   repository: docker.io/oaisoftwarealliance/oai-nr-ue           # dockehub oaisoftwarealliance/oai-nr-ue
-  version: 2024.w32 # image tag or develop 
+  # Must track the same branch/tag as oai-gnb's nfimage.version (../oai-gnb/values.yaml) --
+  # the RFsim wire protocol and PHY params are not guaranteed stable across OAI releases,
+  # and a 2024.w32 UE against a develop gNB fails cell sync (observed 2026-07-27).
+  version: develop # image tag or develop
   # pullPolicy: IfNotPresent or Never or Always
-  pullPolicy: IfNotPresent
+  pullPolicy: Always
 
 serviceAccount:
   # Specifies whether a service account should be created
@@ -24,14 +27,29 @@ imagePullSecrets:
 config:
   timeZone: "Europe/Paris"
   rfSimServer: "oai-ran"    # ip-address of rfsim or service name oai-gnb or oai-du
-  fullImsi: "001010000000100"       # make sure all the below entries are present in the subscriber database
-  fullKey: "fec86ba6eb707ed08905757b1bb44b8f"
-  opc: "C42449363BBAD02B66D16BC975D77CC1"
+  # 001010000000100 was added to the local Open5GS (192.168.8.26, MongoDB) via
+  # `open5gs-dbctl add_ue_with_apn` on 2026-07-27: sst=1, no sd, apn/dnn=oai --
+  # the chart's original default IMSI did not exist in the DB before that (confirmed
+  # via open5gs-dbctl showall) and the AMF rejected registration with PLMN_not_allowed.
+  #
+  # NOTE on sd: nr-uesoftmodem's legacy uicc0 PDU-session path (the one this chart's
+  # configmap.yaml uses) ALWAYS requests the PDU session with SD absent regardless of
+  # nssai_sd's value -- confirmed by testing sd unset, "16777215" (decimal), and "010203"
+  # (raw hex string): all three produced "NSSAI 1.ffffff" in the PDU session request log.
+  # nssai_sd only affects the Registration Request, not the PDU Session Request. So the
+  # subscriber's slice (and oai-gnb's snssaiList) must have NO sd, matching what oai-vnf/
+  # oai-pnf already do -- see oai-gnb/values.yaml.
+  fullImsi: "001010000000100"
+  fullKey: "8baf473f2f8fd09487cccbd7097c6862"
+  opc: "8e27b6af0e692e750f32667a3b14605d"
   dnn: "oai"
-  sst: "1"                     # configure according to gnb and amf, smf and upf 
-  sd: "16777215"
+  sst: "1"                     # configure according to gnb and amf, smf and upf
+  sd: "16777215"  # decimal 0xffffff = "no SD" sentinel; ignored by the PDU session request path (see note above)
   usrp: "rfsim"            # allowed rfsim, b2xx, n3xx, x3xx
-  useAdditionalOptions: "--sa --rfsim -r 106 --numerology 1 -C 3619200000 --log_config.global_log_options level,nocolor,time"
+  # -C must match the gNB's absoluteFrequencySSB in ../oai-gnb/config.yaml (3319.68 MHz, band n78, 106 PRB, numerology 1)
+  # NOTE: "--sa" is rejected as an unknown option by current develop-tag nr-uesoftmodem builds
+  # (SA mode is implied/config-driven now, not a CLI flag) -- observed 2026-07-27 with nfimage.version=develop.
+  useAdditionalOptions: "-E --rfsim -r 106 --numerology 1 -C 3319680000 --log_config.global_log_options level,nocolor,time"
 
 podSecurityContext:
   runAsUser: 0

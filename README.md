@@ -8,8 +8,41 @@
 
 *   [oai-vnf](./oai-vnf)：OAI VNF (Virtual Network Function) 的 Helm Chart，運行 MAC/RLC/PDCP/RRC 與核心網對接。
 *   [oai-pnf](./oai-pnf)：OAI PNF (Physical Network Function) 的 Helm Chart，運行 L1 (PHY) 並透過 DPDK/SR-IOV 與 O-RU 對接。
+*   [oai-gnb](./oai-gnb)：官方 monolithic gNB Helm Chart（取自 `gitlab.eurecom.fr/oai/orchestration/charts`），用於 **RFsim** 端到端測試，不走 nFAPI VNF/PNF split，也不需要實體 O-RU。
+*   [oai-nr-ue](./oai-nr-ue)：官方 OAI NR-UE（軟體 UE）Helm Chart，預設即為 RFsim 模式，與 `oai-gnb` 搭配使用。
 *   [server-configs](./server-configs)：存放針對不同物理伺服器拓撲的 Helm 覆寫設定檔 (`values.yaml` 覆寫檔案)。
 *   [fix_multus_shim.sh](./fix_multus_shim.sh)：用於自動修復 CNI/Multus-shim 卡死（FailedCreatePodSandBox）的修復指令檔。
+
+---
+
+## 1a. RFsim 端到端測試（VNF/PNF 之外的另一條路徑）
+
+**重要：RFsim 不是 PNF 的一種模式。** `oai-pnf` / `oai-vnf` 的 ConfigMap 是寫死給實體 Pegatron O-RU（`local_rf = "no"`、DPDK/FHI7.2 fronthaul、host 上編譯的 xRAN library），沒有 RFsim 路徑。RFsim 是用一個 **monolithic gNB**（gNB 內建軟體 RF 模擬器，`local_rf = "yes"`）取代「PNF + 實體 O-RU」整條鏈路，因此做 RFsim E2E 完全不需要部署 `oai-pnf`，只需要 `oai-gnb` + `oai-nr-ue` 兩個 pod。
+
+```bash
+KUBE_CONTEXT=ming-context
+NAMESPACE=ming-ns
+
+# 1. 部署 monolithic RFsim gNB（會透過 init container 連到 BMW Open5GS AMF 192.168.8.26）
+helm install gnb ./oai-gnb --kube-context "$KUBE_CONTEXT" --namespace "$NAMESPACE"
+kubectl --context "$KUBE_CONTEXT" -n "$NAMESPACE" wait --for=condition=ready pod -l app.kubernetes.io/name=oai-gnb --timeout=180s
+
+# 2. 確認 AMF 有看到這個 gNB N2 Setup 成功後，再部署 NR-UE（服務名稱 oai-ran 已由 oai-gnb chart 固定，nrue 端預設已對齊）
+helm install nrue ./oai-nr-ue --kube-context "$KUBE_CONTEXT" --namespace "$NAMESPACE"
+kubectl --context "$KUBE_CONTEXT" -n "$NAMESPACE" wait --for=condition=ready pod -l app.kubernetes.io/name=oai-nr-ue --timeout=180s
+
+# 3. 確認 UE 拿到 IP
+kubectl --context "$KUBE_CONTEXT" -n "$NAMESPACE" exec -it -c nr-ue deploy/oai-nr-ue -- \
+  sh -c "ifconfig oaitun_ue1 | grep -E '(^|\s)inet($|\s)'"
+```
+
+**2026-07-27 實測全通：Registration Accept → PDU Session Establishment Accept → UE 拿到 `10.45.0.x` → `ping 10.45.0.1` 5/5 成功（~8ms）。** 過程中修掉的坑，全部已固化進 chart 預設值：
+
+*   **`oai-gnb` 必須開 multus，不能用 pod 預設網路。** `192.168.8.26` 這台 Open5GS 主機**不是** K8s node（`kubectl get nodes` 裡沒有它），對 pod overlay network（Cilium `10.0.3.0/24`）完全沒有路由。NGAP（N2）能過是因為那是 gNB 主動撥出去、走 SNAT 的連線；但 GTP-U（N3）是 UPF 主動把封包送到 gNB 宣告的 N3 IP，這條路由不存在就直接黑洞（PDU Session 建立成功、UE 拿到 IP，但雙向 ping 全部 100% packet loss）。修法是比照 `oai-vnf` 開一個 macvlan on `eno1`：`oai-gnb/values.yaml` 的 `multus.enabled: true`，IP 用 `192.168.8.200`（避開 `oai-vnf` 用的 `.199`）。
+*   **`oai-nr-ue` 的 PDU Session 一定不帶 SD**，跟 `nssai_sd` 設什麼無關。這個 chart 的 `nr-ue.conf` 是舊版 `uicc0` legacy 格式（不是新版 `uicc0.pdu_sessions`），nr-uesoftmodem 的 legacy PDU-session 路徑不管 `nssai_sd` 填什麼（試過不填、十進位 `16777215`、hex 字串 `010203`），送出的 PDU Session Request 一律是 `NSSAI 1.ffffff`（SD 缺席）。所以 subscriber 和 `oai-gnb` 的 `snssaiList` 都只能用**純 `sst=1`、不帶 `sd`**，才會對上 AMF 在 `/home/hpe/all_open5gs.yaml` 的 `plmn_support.s_nssai` 第一條（純 sst=1）。
+*   **Subscriber 要用 `open5gs-dbctl` 直接加，不是走 WebUI。** `192.168.8.26` 就是本機（同一台跑 Open5GS from source 的機器，MongoDB 只聽 `127.0.0.1:27017`），沒有對外開 WebUI。chart 原本預設的 `fullImsi=001010000000100` 資料庫裡沒有，已用 `open5gs-dbctl add_ue_with_apn 001010000000100 <key> <opc> oai` 補上（`sst=1`、無 `sd`、apn=`oai`，對齊上一條）。
+*   `oai-nr-ue/values.yaml` 的 `-C` 已對齊 `oai-gnb/config.yaml` 的 `absoluteFrequencySSB`（`3319680000`，band n78、106 PRB、numerology 1）；`rfSimServer` 預設 `oai-ran` 跟 `oai-gnb` chart 固定的 Service 名稱一致，不用改。
+*   兩邊 image tag 都固定用 `develop`（OAI 官方持續建置的最新版，沒有比這更新的 dated tag）。**gNB 和 UE 的 tag 必須同步**：混用曾經導致 RFsim socket 直接 crash（`develop` gNB 對 `2024.w32` UE），以及 `--sa` 這個 CLI flag 在新版 `nr-uesoftmodem` 直接被判定 unknown option、整個 pod crash loop。
 
 ---
 
