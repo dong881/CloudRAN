@@ -20,6 +20,13 @@
 #   ./iperf_rfsim.sh                          # TCP, both directions, 10s
 #   ./iperf_rfsim.sh -p udp -b 20M -d dl       # UDP downlink @ 20 Mbps target
 #   ./iperf_rfsim.sh -p tcp -d ul -t 20        # TCP uplink, 20s
+#
+# Deploy / teardown the RFsim gNB + NR-UE this script targets (run from repo root):
+#   export KUBECONFIG=/home/hpe/CRAN/ming-kubeconfig.yaml
+#   helm install gnb ./oai-gnb -n ming-ns
+#   helm install nrue ./oai-nr-ue -n ming-ns
+#   helm uninstall nrue -n ming-ns
+#   helm uninstall gnb -n ming-ns
 
 set -euo pipefail
 
@@ -37,7 +44,7 @@ INTERVAL=2
 
 usage() {
     local exit_code="${1:-1}"
-    grep '^#' "$0" | sed -n '2,/^set -euo/p' | sed '$d' | sed 's/^# \{0,1\}//'
+    sed -n '2,/^set -euo/p' "$0" | sed '$d' | grep '^#' | sed 's/^# \{0,1\}//'
     exit "$exit_code"
 }
 
